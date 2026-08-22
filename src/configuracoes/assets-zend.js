@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+﻿import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,7 +12,7 @@ export const ASSETS = {
   // Fallback só se o arquivo local não existir
   mainBannerFallback: '',
   botAvatar: 'https://cdn.discordapp.com/avatars/1518014163895586816/567fa4321f043b925f5fd09c0aa71ef5.webp?size=256',
-  ticketBanner: 'https://media.discordapp.net/attachments/1358115100032106506/1366529704219246673/ZenSallers.png',
+  ticketBanner: 'https://media.discordapp.net/attachments/1358115100032106506/1366529704219246673/SFrames.png',
 };
 
 export function assetPath(name) {

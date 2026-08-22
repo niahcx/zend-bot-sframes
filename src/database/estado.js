@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+﻿import fs from 'node:fs/promises';
 import path from 'node:path';
 import { POSITION_LIMIT, applySyncedEmojiOverrides } from '../discord/emojis.js';
 import { criarEstadoPadraoAutomacoes, normalizarEstadoAutomacoes } from '../automacoes/estado-automacoes.js';
@@ -123,8 +123,7 @@ export function defaultGuildState() {
       title: 'Central de Atendimento | SFrames',
       description:
         'Após solicitar um atendimento, aguarde um integrante da equipe responde-lo(a). O atendimento é realizado de forma privada, contudo, somente integrantes da equipe terá acesso ao atendimento. Tenha ciência que a nossa equipe não se encontra presente 24 horas por dia, contudo, dentro dos horários citados acima nossa equipe se encontra disponibilizada a atende-lo(a).',
-      banner:
-        'https://media.discordapp.net/attachments/1358115100032106506/1366529704219246673/ZenSallers.png',
+      banner: 'attachment:TicketSFrames.png',
       color: '#FFFFFF',
       functions: [{ id: 'support', name: 'Suporte', preDescription: 'Preciso de suporte', description: 'Atendimento geral', emoji: '📋', banner: '', purchaseDetection: true }],
       hoursEnabled: false,

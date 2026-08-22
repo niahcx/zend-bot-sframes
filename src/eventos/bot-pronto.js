@@ -35,8 +35,8 @@ export function registrarEventoBotPronto(
     try {
       await client.user.setPresence({
         status: 'online',
-        // Presence discreta: quem olhar o bot vê o invite
-        activities: [{ name: CREDIT_INVITE, type: ActivityType.Watching }],
+        // Presence: marca do bot
+        activities: [{ name: CREDIT_NAME, type: ActivityType.Watching }],
       });
     } catch {
       /* ignore */

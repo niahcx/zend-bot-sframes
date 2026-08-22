@@ -600,6 +600,12 @@ export function criarHandlerModais(ctx) {
       });
       return sendOrUpdate(interaction, authPanel(guild, gs)).catch(() => {});
     }
+    case 'modal-auth-banner': {
+      gs.auth = gs.auth || {};
+      gs.auth.bannerUrl = get('bannerUrl').trim();
+      await salvarAuthConfigNoFirebase(gs.auth);
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
     case 'modal-auth-puxar': {
       try {
         await interaction.deferReply({ flags: 64 });

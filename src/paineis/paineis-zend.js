@@ -54,9 +54,21 @@ export function criarPaineisZend(contexto) {
     textInput,
   } = contexto;
 
+// Resolve o banner do ticket: URL externa OU arquivo local (attachment:)
+function bannerTicket(gs) {
+  const b = gs.ticket?.banner;
+  if (!b) return { image: undefined, files: [] };
+  if (b.startsWith('attachment:')) {
+    const name = b.slice('attachment:'.length);
+    const la = localAsset(name);
+    if (!la) return { image: undefined, files: [] };
+    return { image: `attachment://${name}`, files: [la] };
+  }
+  return { image: b, files: [] };
+}
+
 function authPanel(guild, gs) {
-  const a = gs.auth || {};
-  const modoLabel = a.modo === 'container' ? 'Container (Components V2)' : 'Embed (clássico)';
+  const a = gs.auth || {};  const modoLabel = a.modo === 'container' ? 'Container (Components V2)' : 'Embed (clássico)';
   const e = embed(
     `SFrames\nAuth / KeyAuth`,
     [
@@ -70,6 +82,7 @@ function authPanel(guild, gs) {
       `**Texto do botão:** \`${a.textoBotao || 'Autorizar com Discord'}\``,
       `**Modo de exibição:** \`${modoLabel}\``,
       `**Cargo verificado:** ${a.cargoVerificadoId ? `<@&${a.cargoVerificadoId}>` : '`Não configurado`'}`,
+      `**Banner:** ${a.bannerUrl ? '`Definido ✓`' : '`Não configurado`'}`,
       `**Link da página:** ${a.authUrl ? `[abrir](${a.authUrl})` : '`Não configurado`'}`,
       '',
       '> Tudo que você salvar aqui vai direto para o site de verificação automaticamente.',
@@ -92,7 +105,13 @@ function authPanel(guild, gs) {
         linkButton(a.authUrl || 'https://discord.com', 'Abrir página de verificação'),
       ),
       new ActionRowBuilder().addComponents(
+        button(id('auth-banner'), 'Banner', ButtonStyle.Secondary, '🖼️'),
+        button(id('auth-preview'), 'Prévia do Setup', ButtonStyle.Secondary, '👁️'),
+        button(id('auth-stats'), 'Estatísticas', ButtonStyle.Secondary, '📊'),
+      ),
+      new ActionRowBuilder().addComponents(
         button(id('auth-setup'), 'Enviar Setup no Canal', ButtonStyle.Success, EMOJI.upload),
+        button(id('auth-remove-setup'), 'Remover Setup Antigo', ButtonStyle.Danger, EMOJI.trashcan),
         button(id('auth-puxar'), 'Puxar Membros', ButtonStyle.Success, EMOJI.users),
         button(id('auth-sync'), 'Salvar no site (Firebase)', ButtonStyle.Primary, EMOJI.upload),
       ),
@@ -691,7 +710,8 @@ function ticketPanel(guild, gs) {
     guild,
     'Tickets',
   ).setColor(parseHex(gs.ticket.color || '#FFFFFF'));
-  if (gs.ticket.banner) e.setImage(gs.ticket.banner);
+  const bt = bannerTicket(gs);
+  if (bt.image) e.setImage(bt.image);
   const select = new StringSelectMenuBuilder()
     .setCustomId(id('ticket-menu'))
     .setPlaceholder('Selecione uma opção para configurar')
@@ -704,7 +724,7 @@ function ticketPanel(guild, gs) {
       { label: 'Estatísticas', description: 'Estatísticas de tickets, staffs e desempenho', value: 'stats', emoji: '👥' },
       { label: `Modo atual: ${gs.ticket.messageMode}`, description: 'Alternar entre Embed clássico e Container V2', value: 'message-mode', emoji: '🛡️' },
     );
-  return {
+  const payload = {
     embeds: [e],
     components: [
       new ActionRowBuilder().addComponents(select),
@@ -719,6 +739,8 @@ function ticketPanel(guild, gs) {
       new ActionRowBuilder().addComponents(button(id('home'), 'Voltar', ButtonStyle.Secondary, EMOJI.left)),
     ],
   };
+  if (bt.files.length) payload.files = bt.files;
+  return payload;
 }
 
 function welcomePanel(guild, gs) {
@@ -1433,7 +1455,7 @@ function giveawayMessagePayload(giveaway) {
       { name: '🏆 Vencedores', value: `\`${giveaway.winners}x\``, inline: true },
       { name: '👥 Participantes', value: `\`${participants}x\``, inline: true },
     )
-    .setFooter({ text: `Sorteio · ID ${giveaway.id} · ${CREDIT_INVITE}` })
+    .setFooter({ text: `Sorteio · ID ${giveaway.id}` })
     .setTimestamp();
   if (Object.keys(giveaway.extraEntries || {}).length) {
     e.addFields({ name: '🎯 Entradas extras', value: Object.entries(giveaway.extraEntries).map(([roleId, entries]) => `<@&${roleId}>: +${entries}`).join('\n') });
@@ -2340,11 +2362,12 @@ function ticketOpeningPayload(guild, gs) {
 
     // Um único card V2: banner + texto + botão/select
     const card = new ContainerBuilder().setAccentColor(cor);
+    const btV2 = bannerTicket(gs);
 
-    if (gs.ticket.banner) {
+    if (btV2.image) {
       card.addMediaGalleryComponents(
         new MediaGalleryBuilder().addItems(
-          new MediaGalleryItemBuilder().setURL(gs.ticket.banner),
+          new MediaGalleryItemBuilder().setURL(btV2.image),
         ),
       );
       card.addSeparatorComponents(
@@ -2374,20 +2397,25 @@ function ticketOpeningPayload(guild, gs) {
       }
     }
 
-    return {
+    const payloadV2 = {
       flags: MessageFlags.IsComponentsV2,
       components: [card],
     };
+    if (btV2.files.length) payloadV2.files = btV2.files;
+    return payloadV2;
   }
 
   const ticketEmbed = embed(gs.ticket.title, gs.ticket.description, guild).setColor(
     parseHex(gs.ticket.color || '#FFFFFF'),
   );
-  if (gs.ticket.banner) ticketEmbed.setImage(gs.ticket.banner);
-  return {
+  const btEmbed = bannerTicket(gs);
+  if (btEmbed.image) ticketEmbed.setImage(btEmbed.image);
+  const payloadAbertura = {
     embeds: [ticketEmbed],
     components: actionRows,
   };
+  if (btEmbed.files.length) payloadAbertura.files = btEmbed.files;
+  return payloadAbertura;
 }
 
 function ticketPreview(guild, gs) {
@@ -2405,12 +2433,14 @@ function ticketPreview(guild, gs) {
         ),
         ...(opening.components || []),
       ],
+      ...(opening.files?.length ? { files: opening.files } : {}),
     };
   }
   return {
     content: '👁️ Preview — É assim que a mensagem ficará no canal.',
     embeds: opening.embeds,
     components: opening.components,
+    ...(opening.files?.length ? { files: opening.files } : {}),
   };
 }
 
@@ -2440,8 +2470,9 @@ function ticketInternalPayload(guild, gs, ticket, fn) {
     `**${fn.name}**\n${fn.description || gs.ticket.description}`,
     guild,
   );
-  if (gs.ticket.banner) panel.setImage(gs.ticket.banner);
-  return {
+  const btStaff = bannerTicket(gs);
+  if (btStaff.image) panel.setImage(btStaff.image);
+  const payloadStaff = {
     content: `<@${ticket.userId}>`,
     embeds: [panel],
     components: [
@@ -2453,6 +2484,8 @@ function ticketInternalPayload(guild, gs, ticket, fn) {
       new ActionRowBuilder().addComponents(button(id('ticket-close', ticket.id), 'Deletar e Salvar', ButtonStyle.Danger, '🗑️')),
     ],
   };
+  if (btStaff.files.length) payloadStaff.files = btStaff.files;
+  return payloadStaff;
 }
 
 async function createTicketChannel(interaction, gs, ticket) {
@@ -2794,7 +2827,6 @@ function salePayload(product, gs) {
         inline: true,
       },
     )
-    .setFooter({ text: CREDIT_TAG })
     .setTimestamp();
   if (product.banner) e.setImage(product.banner);
   return {

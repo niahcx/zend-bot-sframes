@@ -1,4 +1,4 @@
-import {
+﻿import {
   ActionRowBuilder,
   ButtonStyle,
   ChannelSelectMenuBuilder,
@@ -12,7 +12,7 @@ export function painelMonitorFeedbacks(guild, gs) {
   const config = gs.automations.feedback;
   return {
     embeds: [embed(
-      'zenSallers\nSistema de monitoramento de feedbacks',
+      'SFrames\nSistema de monitoramento de feedbacks',
       [
         `**Sistema de monitoramento de feedbacks - ${config.enabled ? 'HABILITADO 🟢' : 'DESABILITADO 🔴'}**`,
         '',
@@ -40,7 +40,7 @@ export function painelLockUnlock(guild, gs) {
   const regras = config.rules || [];
   return {
     embeds: [embed(
-      'zenSallers\n🔒 Sistema de Lock-Unlock Automático',
+      'SFrames\n🔒 Sistema de Lock-Unlock Automático',
       [
         '◉ O sistema de Lock-Unlock permite configurar horários para trancar e destrancar canais automaticamente.',
         '',
@@ -67,7 +67,7 @@ export function painelLockUnlock(guild, gs) {
 
 export function painelSelecionarCanalLock(guild) {
   return {
-    embeds: [embed('zenSallers\n# Selecionar Canal', 'Selecione o canal onde deseja configurar o lock/unlock automático.\n\nApenas canais de texto podem ser selecionados.', guild, 'Automações').setColor(0xe60000)],
+    embeds: [embed('SFrames\n# Selecionar Canal', 'Selecione o canal onde deseja configurar o lock/unlock automático.\n\nApenas canais de texto podem ser selecionados.', guild, 'Automações').setColor(0xe60000)],
     components: [
       new ActionRowBuilder().addComponents(new ChannelSelectMenuBuilder().setCustomId(id('auto-lock-channel-new')).setPlaceholder('Selecione um canal')),
       new ActionRowBuilder().addComponents(button(id('auto-lock'), 'Cancelar', ButtonStyle.Secondary, EMOJI.left)),
@@ -87,7 +87,7 @@ export function painelGerenciarLock(guild, gs) {
       emoji: '🔒',
     })));
   return {
-    embeds: [embed('zenSallers\n🔒 Gerenciar Lock-Unlock', `Selecione uma regra abaixo.\n\n**Total:** \`${regras.length}\``, guild, 'Automações').setColor(0xe60000)],
+    embeds: [embed('SFrames\n🔒 Gerenciar Lock-Unlock', `Selecione uma regra abaixo.\n\n**Total:** \`${regras.length}\``, guild, 'Automações').setColor(0xe60000)],
     components: [
       ...(regras.length ? [new ActionRowBuilder().addComponents(select)] : []),
       new ActionRowBuilder().addComponents(button(id('auto-lock'), 'Voltar', ButtonStyle.Secondary, EMOJI.left)),
@@ -98,7 +98,7 @@ export function painelGerenciarLock(guild, gs) {
 export function painelRegraLock(guild, regra) {
   return {
     embeds: [embed(
-      'zenSallers\n🔒 Configuração de Lock-Unlock',
+      'SFrames\n🔒 Configuração de Lock-Unlock',
       [
         `◉ Configuração de lock/unlock automático para <#${regra.channelId}>`,
         '',
@@ -125,7 +125,7 @@ export function painelRegraLock(guild, regra) {
 export function painelAjudaLock(guild) {
   return {
     embeds: [embed(
-      'zenSallers\n◉ Como Funciona o Lock-Unlock Automático',
+      'SFrames\n◉ Como Funciona o Lock-Unlock Automático',
       [
         ':genesisVerifieldDuo: **Configuração Básica**',
         '1. Crie uma regra selecionando um canal',
@@ -155,7 +155,7 @@ export function painelRestock(guild, gs) {
   const mention = config.mention === 'everyone' ? '`@everyone`' : config.role ? `<@&${config.role}>` : '`Nenhuma`';
   return {
     embeds: [embed(
-      'zenSallers\n🎁 Sistema de Alerta de Restock',
+      'SFrames\n🎁 Sistema de Alerta de Restock',
       [
         'Configure notificações automáticas sempre que o estoque de um produto for reposto.',
         '',
@@ -185,7 +185,7 @@ export function painelRestock(guild, gs) {
 
 export function painelSelecionarCanalRestock(guild, gs) {
   return {
-    embeds: [embed('zenSallers\n# Selecionar Canal de Restock', `Selecione o canal onde as notificações de restock serão enviadas.\n\n**Canal atual:** ${gs.automations.restock.channel ? `<#${gs.automations.restock.channel}>` : '`Não configurado`'}`, guild, 'Automações').setColor(0xe60000)],
+    embeds: [embed('SFrames\n# Selecionar Canal de Restock', `Selecione o canal onde as notificações de restock serão enviadas.\n\n**Canal atual:** ${gs.automations.restock.channel ? `<#${gs.automations.restock.channel}>` : '`Não configurado`'}`, guild, 'Automações').setColor(0xe60000)],
     components: [
       new ActionRowBuilder().addComponents(new ChannelSelectMenuBuilder().setCustomId(id('auto-restock-channel-set')).setPlaceholder('📣 Selecione o canal de notificações')),
       new ActionRowBuilder().addComponents(button(id('auto-restock'), 'Voltar', ButtonStyle.Secondary, EMOJI.left)),
@@ -196,7 +196,7 @@ export function painelSelecionarCanalRestock(guild, gs) {
 export function painelSelecionarCanalAutomacao(guild, { title, description, customId, currentChannel, backAction }) {
   return {
     embeds: [embed(
-      `zenSallers\n# ${title}`,
+      `SFrames\n# ${title}`,
       `${description}\n\n**Canal atual:** ${currentChannel ? `<#${currentChannel}>` : '`Não configurado`'}`,
       guild,
       'Automações',
@@ -212,7 +212,7 @@ export function painelMencaoRestock(guild, gs) {
   const config = gs.automations.restock;
   return {
     embeds: [embed(
-      'zenSallers\n🔔 Configurar Menção de Restock',
+      'SFrames\n🔔 Configurar Menção de Restock',
       [
         'Escolha quem será mencionado quando uma notificação de restock for enviada.',
         '',
@@ -246,7 +246,7 @@ export function painelInviteTracker(guild, gs) {
   const fakes = registros.reduce((sum, item) => sum + Number(item.fake || 0), 0);
   return {
     embeds: [embed(
-      'zenSallers\n🎁 Sistema de Rastreamento de Convites',
+      'SFrames\n🎁 Sistema de Rastreamento de Convites',
       [
         'Configure e gerencie o sistema de convites do servidor.',
         '',

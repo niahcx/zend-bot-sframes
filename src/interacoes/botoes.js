@@ -5,6 +5,7 @@ import { painelLimpezaAutomatica } from '../automacoes/paineis-limpeza.js';
 import { painelInviteTracker, painelLockUnlock, painelMonitorFeedbacks, painelRestock } from '../automacoes/paineis-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
 import { salvarAuthConfigNoFirebase, listarVerificadosFirebase } from '../infraestrutura/firebase-auth.js';
+import { authSetupPayload } from '../paineis/auth-setup.js';
 import { ChannelSelectMenuBuilder, ChannelType, MessageFlags } from 'discord.js';
 
 export function criarHandlerBotoes(ctx) {
@@ -304,6 +305,51 @@ export function criarHandlerBotoes(ctx) {
       return interaction.showModal(modal(id('modal-auth-cargo'), 'Cargo de Verificado', [
         textInput('cargoId', 'ID DO CARGO*', 'Clique direito no cargo → Copiar ID', TextInputStyle.Short, true),
       ]));
+    case 'auth-banner':
+      return interaction.showModal(modal(id('modal-auth-banner'), 'Banner da verificação', [
+        textInput('bannerUrl', 'URL DO BANNER (imagem larga)', 'Cole o link da imagem — vazio remove o banner', TextInputStyle.Short, false),
+      ]));
+    case 'auth-preview':
+      return interaction.reply({ ...authSetupPayload(guild, gs), flags: MessageFlags.Ephemeral });
+    case 'auth-stats': {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      const lista = await listarVerificadosFirebase();
+      if (!lista.length) return interaction.editReply({ content: `${EMOJI.no} | Nenhum membro verificado no Firebase ainda.` });
+      const agora = Date.now();
+      const dias = (ts) => Math.floor((agora - new Date(ts).getTime()) / 86400000);
+      const hoje = lista.filter((u) => u.verifiedAt && dias(u.verifiedAt) < 1).length;
+      const semana = lista.filter((u) => u.verifiedAt && dias(u.verifiedAt) < 7).length;
+      const mes = lista.filter((u) => u.verifiedAt && dias(u.verifiedAt) < 30).length;
+      const comToken = lista.filter((u) => u.access_token).length;
+      const ultimos = lista
+        .slice(-5)
+        .reverse()
+        .map((u) => `> ${u.username || u.id} · <t:${Math.floor(new Date(u.verifiedAt || 0).getTime() / 1000)}:R>`)
+        .join('\n');
+      return interaction.editReply({
+        content: `# 📊 Estatísticas de Verificação\n**Total verificado:** \`${lista.length}\`\n` +
+          `**Últimas 24h:** \`${hoje}\` · **7 dias:** \`${semana}\` · **30 dias:** \`${mes}\`\n` +
+          `**Tokens válidos p/ puxar:** \`${comToken}\`\n\n**Últimos verificadores:**\n${ultimos}`,
+      });
+    }
+    case 'auth-remove-setup': {
+      gs.auth = gs.auth || {};
+      if (!gs.auth.setupChannelId || !gs.auth.setupMessageId) {
+        return interaction.reply({ content: `${EMOJI.no} | Nenhum setup antigo registrado.`, flags: MessageFlags.Ephemeral });
+      }
+      try {
+        const canal = await guild.channels.fetch(gs.auth.setupChannelId);
+        const msg = await canal?.messages?.fetch(gs.auth.setupMessageId);
+        if (msg) await msg.delete();
+        gs.auth.setupChannelId = '';
+        gs.auth.setupMessageId = '';
+        return interaction.reply({ content: `${EMOJI.yesgenesis} | Setup antigo removido! Envie um novo quando quiser.`, flags: MessageFlags.Ephemeral });
+      } catch {
+        gs.auth.setupChannelId = '';
+        gs.auth.setupMessageId = '';
+        return interaction.reply({ content: `${EMOJI.yesgenesis} | A mensagem antiga já não existia. Registro limpo!`, flags: MessageFlags.Ephemeral });
+      }
+    }
     case 'auth-setup':
       return interaction.reply({
         content: '**Selecione o canal** onde o painel de verificação será enviado:',

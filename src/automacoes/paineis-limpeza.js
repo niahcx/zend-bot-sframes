@@ -1,4 +1,4 @@
-import {
+﻿import {
   ActionRowBuilder,
   ButtonStyle,
   ChannelSelectMenuBuilder,
@@ -21,7 +21,7 @@ export function painelLimpezaAutomatica(guild, gs) {
 
   return {
     embeds: [embed(
-      'zenSallers\n🗑 Sistema de Limpeza Automática',
+      'SFrames\n🗑 Sistema de Limpeza Automática',
       [
         '◉ O sistema de limpeza automática permite configurar horários para limpar mensagens em canais específicos.',
         '',
@@ -49,7 +49,7 @@ export function painelLimpezaAutomatica(guild, gs) {
 export function painelSelecionarCanalLimpeza(guild) {
   return {
     embeds: [embed(
-      'zenSallers\n# Selecionar Canal',
+      'SFrames\n# Selecionar Canal',
       'Selecione o canal onde deseja configurar a limpeza automática.\n\nSomente canais de texto podem ser selecionados.',
       guild,
       'Automações',
@@ -74,7 +74,7 @@ export function painelGerenciarLimpezas(guild, gs) {
     })));
 
   return {
-    embeds: [embed('zenSallers\n🗑 Gerenciar Regras de Limpeza', `Selecione uma regra abaixo.\n\n**Total:** \`${regras.length}\``, guild, 'Automações').setColor(0xe60000)],
+    embeds: [embed('SFrames\n🗑 Gerenciar Regras de Limpeza', `Selecione uma regra abaixo.\n\n**Total:** \`${regras.length}\``, guild, 'Automações').setColor(0xe60000)],
     components: [
       ...(regras.length ? [new ActionRowBuilder().addComponents(select)] : []),
       new ActionRowBuilder().addComponents(button(id('auto-clean'), 'Voltar', ButtonStyle.Secondary, EMOJI.left)),
@@ -85,7 +85,7 @@ export function painelGerenciarLimpezas(guild, gs) {
 export function painelRegraLimpeza(guild, regra) {
   return {
     embeds: [embed(
-      'zenSallers\n◷ Configuração de Limpeza',
+      'SFrames\n◷ Configuração de Limpeza',
       [
         `◉ Visão geral da regra de limpeza automática para <#${regra.channelId}>`,
         '',
@@ -121,7 +121,7 @@ export function painelAgendamentoLimpeza(guild, regra, indice) {
   const ordinal = Number(indice) + 1;
   return {
     embeds: [embed(
-      `zenSallers\n◷ Configurar ${ordinal}ª Limpeza${ordinal === 2 ? ' (opcional)' : ''}`,
+      `SFrames\n◷ Configurar ${ordinal}ª Limpeza${ordinal === 2 ? ' (opcional)' : ''}`,
       [
         `Configure os horários e opções da ${ordinal === 1 ? 'primeira' : 'segunda'} limpeza diária para <#${regra.channelId}>.`,
         '',
@@ -149,7 +149,7 @@ export function painelAgendamentoLimpeza(guild, regra, indice) {
 export function painelAvancadoLimpeza(guild, regra) {
   return {
     embeds: [embed(
-      'zenSallers\n✓ Configurações Avançadas',
+      'SFrames\n✓ Configurações Avançadas',
       [
         `Configure opções avançadas da limpeza automática para <#${regra.channelId}>.`,
         '',
@@ -180,7 +180,7 @@ export function painelAvancadoLimpeza(guild, regra) {
 export function painelAjudaLimpeza(guild) {
   return {
     embeds: [embed(
-      'zenSallers\n◉ Como Funciona a Limpeza Automática',
+      'SFrames\n◉ Como Funciona a Limpeza Automática',
       [
         ':genesisVerifieldDuo: **Configuração Básica**',
         '1. Crie uma regra selecionando um canal',

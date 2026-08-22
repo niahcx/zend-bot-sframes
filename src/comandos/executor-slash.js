@@ -1,4 +1,4 @@
-// Executor dos slash commands do Zend clonando.
+﻿// Executor dos slash commands do Zend clonando.
 // Aqui ficam as respostas dos comandos /panel, /sales, /entregar e similares.
 
 export function criarExecutorSlash(contexto) {
@@ -333,7 +333,7 @@ function balancePublicPayload(guild, gs) {
   return {
     embeds: [
       embed(
-        'zenSallers\nPainel de Saldo',
+        'SFrames\nPainel de Saldo',
         [
           'Use este painel para solicitar recarga de saldo interno.',
           `**Sistema:** \`${gs.balance.enabled ? '🟢 Habilitado' : '🔴 Desabilitado'}\``,
@@ -365,7 +365,7 @@ function ticketManagerPanel(guild, gs) {
   return {
     embeds: [
       embed(
-        'zenSallers\nGerenciamento de Tickets',
+        'SFrames\nGerenciamento de Tickets',
         [
           `**Abertos:** \`${gs.tickets.filter((ticket) => ticket.status === 'open').length}\``,
           `**Arquivados:** \`${gs.tickets.filter((ticket) => ticket.status === 'archived').length}\``,

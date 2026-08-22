@@ -1,4 +1,4 @@
-import {
+﻿import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -30,7 +30,7 @@ export function painelMensagensAutomaticas(guild, gs) {
 
   return {
     embeds: [embed(
-      'zenSallers\n▣ Sistema de Mensagens Automáticas',
+      'SFrames\n▣ Sistema de Mensagens Automáticas',
       [
         'Gerencie mensagens automáticas que serão enviadas regularmente nos canais configurados.',
         '',
@@ -59,7 +59,7 @@ export function painelMensagensAutomaticas(guild, gs) {
 export function painelSelecionarCanalMensagem(guild, rascunho) {
   return {
     embeds: [embed(
-      'zenSallers\n# Selecione o Canal',
+      'SFrames\n# Selecione o Canal',
       [
         'Agora selecione o canal onde a mensagem será enviada automaticamente.',
         '',
@@ -96,7 +96,7 @@ export function painelGerenciarMensagens(guild, gs) {
 
   return {
     embeds: [embed(
-      'zenSallers\n▣ Gerenciar Mensagens Automáticas',
+      'SFrames\n▣ Gerenciar Mensagens Automáticas',
       `Selecione uma mensagem no menu abaixo para editar, configurar o intervalo ou remover.\n\n◉ **Total de mensagens:** \`${itens.length}x\``,
       guild,
       'Automações',
@@ -115,7 +115,7 @@ export function painelVisualizarTodasMensagens(guild, gs) {
   if (!itens.length) {
     return {
       embeds: [embed(
-        'zenSallers\n👁️ Visualizar Todas',
+        'SFrames\n👁️ Visualizar Todas',
         'Nenhuma mensagem automática configurada ainda.\n\nUse **Nova Mensagem** para criar a primeira.',
         guild,
         'Automações',
@@ -176,7 +176,7 @@ export function painelVisualizarTodasMensagens(guild, gs) {
 
   return {
     embeds: [embed(
-      'zenSallers\n👁️ Visualizar Todas as Mensagens',
+      'SFrames\n👁️ Visualizar Todas as Mensagens',
       descricao,
       guild,
       `${itens.length} mensagem(ns)`,
@@ -193,7 +193,7 @@ export function painelVisualizarTodasMensagens(guild, gs) {
 
 export function painelConfigurarMensagem(guild, item) {
   return {
-    embeds: [embed('zenSallers\n◉ Configurar Mensagem', resumoMensagem(item), guild, `ID: ${item.id}`).setColor(0xe60000)],
+    embeds: [embed('SFrames\n◉ Configurar Mensagem', resumoMensagem(item), guild, `ID: ${item.id}`).setColor(0xe60000)],
     components: [
       new ActionRowBuilder().addComponents(
         button(id('auto-msg-edit', item.id), 'Editar Conteúdo', ButtonStyle.Primary, EMOJI.edit),
@@ -221,7 +221,7 @@ export function painelBotoesMensagem(guild, item) {
 
   return {
     embeds: [embed(
-      'zenSallers\n🔗 Gerenciar Botões URL',
+      'SFrames\n🔗 Gerenciar Botões URL',
       `Configure até **5 botões** que serão exibidos na mensagem automática.\n\n**▣ Botões Configurados**\n${linhas}`,
       guild,
       `${item.buttons?.length || 0}/5 botões configurados`,
