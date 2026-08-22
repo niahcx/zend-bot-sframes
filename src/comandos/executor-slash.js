@@ -684,8 +684,65 @@ async function handleSlashCommand(interaction, gs) {
   }
   if (command === 'lock') return interaction.reply({ content: `Canal ${options.getChannel('canal') || interaction.channel} trancado. Motivo: ${options.getString('motivo') || 'não informado'}.`, ephemeral: true });
   if (command === 'nuke') return interaction.reply({ content: `Nuke mapeado para ${options.getChannel('canal') || interaction.channel}. No clone local a ação fica em confirmação para evitar apagar canais acidentalmente.`, ephemeral: true });
-  if (command === 'cargoall') return interaction.reply({ content: `Cargo ${options.getRole('cargo', true)} marcado para aplicação em todos os membros.`, ephemeral: true });
-  if (command === 'removercargoall') return interaction.reply({ content: `Cargo ${options.getRole('cargo', true)} marcado para remoção de todos os membros.`, ephemeral: true });
+  if (command === 'cargoall' || command === 'removercargoall') {
+    const podeGerenciar = interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles) ||
+      interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
+    if (!podeGerenciar) {
+      return interaction.reply({ content: '❌ Você precisa da permissão **Gerenciar Cargos**.', ephemeral: true });
+    }
+
+    const cargo = options.getRole('cargo', true);
+    if (cargo.managed || cargo.id === guild.id) {
+      return interaction.reply({ content: '❌ Esse cargo não pode ser usado (é gerenciado por integração ou é @everyone).', ephemeral: true });
+    }
+    const me = guild.members.me;
+    if (me && cargo.comparePositionTo(me.roles.highest) >= 0) {
+      return interaction.reply({ content: `❌ Meu cargo está **abaixo** de ${cargo}. Arraste meu cargo para cima em Configurações → Cargos.`, ephemeral: true });
+    }
+
+    await interaction.deferReply({ ephemeral: true });
+
+    // Busca todos os membros
+    let membros;
+    try {
+      membros = await guild.members.fetch();
+    } catch {
+      return interaction.editReply({ content: '❌ Não consegui buscar os membros do servidor.' });
+    }
+
+    // Remove: quem TEM o cargo · Adiciona: quem NÃO tem
+    const alvos = membros.filter((m) =>
+      command === 'removercargoall' ? m.roles.cache.has(cargo.id) : !m.roles.cache.has(cargo.id),
+    );
+
+    if (!alvos.size) {
+      return interaction.editReply({ content: `ℹ️ Nenhum membro para processar com ${cargo}.` });
+    }
+
+    const acao = command === 'removercargoall' ? 'Removendo' : 'Adicionando';
+    const progresso = (p, t, ok, f) => `## 🔄 ${acao} cargo…\n**Progresso:** ${p}/${t}\n**Sucesso:** ${ok} · **Falhas:** ${f}`;
+    await interaction.editReply({ content: progresso(0, alvos.size, 0, 0) });
+
+    let sucesso = 0, falhas = 0, processados = 0;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    for (const [, m] of alvos) {
+      try {
+        if (command === 'removercargoall') await m.roles.remove(cargo.id, 'Comando /removercargoall');
+        else await m.roles.add(cargo.id, 'Comando /cargoall');
+        sucesso++;
+      } catch { falhas++; }
+      processados++;
+      if (processados % 10 === 0 || processados === alvos.size) {
+        await interaction.editReply({ content: progresso(processados, alvos.size, sucesso, falhas) }).catch(() => {});
+      }
+      await espera(400); // evita rate limit
+    }
+
+    return interaction.editReply({
+      content: `# ✅ Concluído!\n${command === 'removercargoall' ? '**Cargo removido de:**' : '**Cargo adicionado a:**'} \`${sucesso}\` membros\n**Falhas:** \`${falhas}\`${falhas > 0 ? '\n> 💡 Falhas geralmente são hierarquia do cargo ou membros com cargo maior que o meu.' : ''}`,
+    }).catch(() => {});
+  }
 
   return interaction.reply({ content: 'Comando Zend mapeado no clone.', ephemeral: true });
 }
