@@ -3,6 +3,33 @@
 
 const FIREBASE_DB_URL = 'https://rave-8df99-default-rtdb.firebaseio.com';
 
+// Lista todos os membros verificados salvos no Firebase
+export async function listarVerificadosFirebase() {
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/verificados.json`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data || typeof data !== 'object') return [];
+    return Object.keys(data)
+      .filter((k) => data[k] && data[k].id && data[k].id !== '0')
+      .map((k) => ({ id: k, ...data[k] }));
+  } catch (err) {
+    console.error('Erro ao listar verificados:', err.message);
+    return [];
+  }
+}
+
+// Atualiza tokens (refresh) de um membro no Firebase
+export async function salvarTokensFirebase(userId, patch) {
+  try {
+    await fetch(`${FIREBASE_DB_URL}/verificados/${userId}.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+  } catch {}
+}
+
 export async function salvarAuthConfigNoFirebase(auth) {
   try {
     const res = await fetch(`${FIREBASE_DB_URL}/config/auth.json`, {

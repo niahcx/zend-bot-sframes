@@ -4,7 +4,8 @@ import { painelMensagensAutomaticas } from '../automacoes/paineis-mensagens.js';
 import { painelLimpezaAutomatica } from '../automacoes/paineis-limpeza.js';
 import { painelInviteTracker, painelLockUnlock, painelMonitorFeedbacks, painelRestock } from '../automacoes/paineis-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
-import { salvarAuthConfigNoFirebase } from '../infraestrutura/firebase-auth.js';
+import { salvarAuthConfigNoFirebase, listarVerificadosFirebase } from '../infraestrutura/firebase-auth.js';
+import { ChannelSelectMenuBuilder, ChannelType, MessageFlags } from 'discord.js';
 
 export function criarHandlerBotoes(ctx) {
   const {
@@ -295,6 +296,37 @@ export function criarHandlerBotoes(ctx) {
           : `${EMOJI.no} | Falha ao salvar no Firebase. Verifique a conexão.`,
       });
     }
+    case 'auth-link':
+      return interaction.showModal(modal(id('modal-auth-link'), 'Link do site de verificação', [
+        textInput('url', 'URL DO SITE*', 'Ex: https://sframes-auth.up.railway.app', TextInputStyle.Short, true),
+      ]));
+    case 'auth-setup':
+      return interaction.reply({
+        content: '**Selecione o canal** onde o painel de verificação será enviado:',
+        components: [new ActionRowBuilder().addComponents(
+          new ChannelSelectMenuBuilder()
+            .setCustomId(id('auth-channel'))
+            .setPlaceholder('Canal do setup de verificação')
+            .setChannelTypes(ChannelType.GuildText),
+        )],
+        flags: MessageFlags.Ephemeral,
+      });
+    case 'verify-me': {
+      const url = gs.auth?.authUrl;
+      if (!url) {
+        return interaction.reply({ content: '🔒 A verificação ainda não está configurada. Peça à equipe para configurar em /panel → Auth.', flags: MessageFlags.Ephemeral });
+      }
+      return interaction.reply({
+        embeds: [embed(gs.auth.titulo || 'Verificação', `${gs.auth.descricao || ''}\n\n> Clique abaixo para autorizar e se verificar.`, guild, 'Auth')],
+        components: [new ActionRowBuilder().addComponents(linkButton(url, gs.auth.textoBotao || 'Verificar-se'))],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    case 'auth-puxar':
+      return interaction.showModal(modal(id('modal-auth-puxar'), 'Puxar Membros Verificados', [
+        textInput('amount', 'QUANTIDADE*', `Disponíveis no Firebase — ex: 50`, TextInputStyle.Short, true),
+        textInput('targetGuild', 'SERVIDOR ALVO (ID)*', 'ID do servidor onde os membros serão enviados', TextInputStyle.Short, true),
+      ]));
 
     case 'product-new':
       return interaction.showModal(modal(id('modal-product-name'), 'Criar Produto - Etapa 1', [

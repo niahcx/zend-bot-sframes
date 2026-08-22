@@ -1,7 +1,8 @@
 import { tratarModalAutomacoes } from '../automacoes/interacoes-automacoes.js';
 import { tratarModalOutrasAutomacoes } from '../automacoes/interacoes-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
-import { salvarAuthConfigNoFirebase } from '../infraestrutura/firebase-auth.js';
+import { salvarAuthConfigNoFirebase, listarVerificadosFirebase, salvarTokensFirebase } from '../infraestrutura/firebase-auth.js';
+import { TOKEN } from '../configuracoes/ambiente.js';
 
 export function criarHandlerModais(ctx) {
   const {
@@ -565,6 +566,78 @@ export function criarHandlerModais(ctx) {
       gs.auth.textoBotao = get('textoBotao') || gs.auth.textoBotao;
       await salvarAuthConfigNoFirebase(gs.auth);
       return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
+    case 'modal-auth-link': {
+      gs.auth = gs.auth || {};
+      let url = get('url').trim();
+      if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
+      gs.auth.authUrl = url.replace(/\/+$/, '');
+      await salvarAuthConfigNoFirebase(gs.auth);
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
+    case 'modal-auth-puxar': {
+      await interaction.deferReply({ flags: 64 });
+      const amount = Math.max(1, Math.min(5000, Number(get('amount')) || 1));
+      const targetGuildId = (get('targetGuild') || '').replace(/\D/g, '');
+      if (!targetGuildId) return interaction.editReply({ content: `${EMOJI.no} | ID do servidor alvo inválido.` });
+
+      const lista = await listarVerificadosFirebase();
+      const alvo = lista.slice(0, amount);
+      if (!alvo.length) return interaction.editReply({ content: `${EMOJI.no} | Nenhum membro verificado no Firebase ainda.` });
+
+      const progresso = (p, t, ok, ja, falha) =>
+        `## Puxando membros…\n**Progresso:** ${p}/${t}\n**Puxados:** ${ok} · **Já estavam:** ${ja} · **Falhas:** ${falha}`;
+      await interaction.editReply({ content: progresso(0, alvo.length, 0, 0, 0) });
+
+      const puxarComToken = async (userId, accessToken) => {
+        const res = await fetch(`https://discord.com/api/v10/guilds/${targetGuildId}/members/${userId}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: accessToken }),
+        });
+        return res.status; // 201 = entrou, 204 = já estava
+      };
+
+      const renovarToken = async (u) => {
+        const secret = process.env.CLIENT_SECRET;
+        if (!secret || !u.refresh_token) return null;
+        try {
+          const body = new URLSearchParams({
+            client_id: process.env.CLIENT_ID || '',
+            client_secret: secret,
+            grant_type: 'refresh_token',
+            refresh_token: u.refresh_token,
+          });
+          const res = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', body });
+          if (!res.ok) return null;
+          const data = await res.json();
+          await salvarTokensFirebase(u.id, { access_token: data.access_token, refresh_token: data.refresh_token });
+          return data.access_token;
+        } catch { return null; }
+      };
+
+      let puxados = 0, jaEstavam = 0, falhas = 0, processados = 0;
+      for (const u of alvo) {
+        if (!u.access_token) { falhas++; processados++; continue; }
+        try {
+          let status = await puxarComToken(u.id, u.access_token);
+          if (status !== 201 && status !== 204) {
+            const novoToken = await renovarToken(u);
+            if (novoToken) status = await puxarComToken(u.id, novoToken);
+          }
+          if (status === 201) puxados++;
+          else if (status === 204) jaEstavam++;
+          else falhas++;
+        } catch { falhas++; }
+        processados++;
+        if (processados % 5 === 0 || processados === alvo.length) {
+          await interaction.editReply({ content: progresso(processados, alvo.length, puxados, jaEstavam, falhas) }).catch(() => {});
+        }
+      }
+      await interaction.editReply({
+        content: `# ✅ Puxão concluído!\n**Puxados:** ${puxados}\n**Já estavam no servidor:** ${jaEstavam}\n**Falhas:** ${falhas}`,
+      });
+      return;
     }
     default:
       return interaction.reply({ content: 'Não foi possível identificar este formulário. Abra o painel novamente.', ephemeral: true });

@@ -402,6 +402,19 @@ async function handleChannelSelect(interaction, gs) {
   const channelId = interaction.values[0];
   if (await tratarCanalAutomacoes(interaction, gs, action, a)) return;
   if (await tratarCanalOutrasAutomacoes(interaction, gs, action, a)) return;
+  if (action === 'auth-channel') {
+    const channel = await interaction.guild.channels.fetch(channelId);
+    const { authSetupPayload } = await import('../paineis/auth-setup.js');
+    const msg = await channel.send(authSetupPayload(interaction.guild, gs));
+    gs.auth = gs.auth || {};
+    gs.auth.setupChannelId = channelId;
+    gs.auth.setupMessageId = msg.id;
+    return interaction.update({
+      content: `${EMOJI.yesgenesis} | Setup de verificação enviado para <#${channelId}>! Os membros já podem se verificar.`,
+      components: [new ActionRowBuilder().addComponents(linkButton(msg.url, 'Ir para o painel'))],
+      embeds: [],
+    });
+  }
   if (action === 'giveaway-channel') {
     const draft = userDraft(interaction.user.id).giveaway;
     if (!draft) return interaction.reply({ content: 'Configuração de sorteio expirada.', ephemeral: true });

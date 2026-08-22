@@ -86,10 +86,15 @@ function authPanel(guild, gs) {
       ),
       new ActionRowBuilder().addComponents(
         button(id('auth-modo'), `Modo: ${modoLabel}`, ButtonStyle.Secondary, EMOJI.settings),
+        button(id('auth-link'), 'Link do site', ButtonStyle.Secondary, EMOJI.url),
         linkButton(a.authUrl || 'https://discord.com', 'Abrir página de verificação'),
       ),
       new ActionRowBuilder().addComponents(
-        button(id('auth-sync'), 'Salvar no site (Firebase)', ButtonStyle.Success, EMOJI.upload),
+        button(id('auth-setup'), 'Enviar Setup no Canal', ButtonStyle.Success, EMOJI.upload),
+        button(id('auth-puxar'), 'Puxar Membros', ButtonStyle.Success, EMOJI.users),
+        button(id('auth-sync'), 'Salvar no site (Firebase)', ButtonStyle.Primary, EMOJI.upload),
+      ),
+      new ActionRowBuilder().addComponents(
         button(id('main'), 'Voltar', ButtonStyle.Secondary, EMOJI.left),
       ),
     ],
