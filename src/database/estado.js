@@ -17,6 +17,50 @@ export async function loadState() {
 
 export let state = await loadState();
 
+// ── Config de auth persistente na nuvem (Firebase) ──────────────
+// O filesystem do Railway é apagado a cada deploy; o Firebase guarda
+// o que foi configurado no /panel e restaura na inicialização.
+const FIREBASE_AUTH_URL = 'https://rave-8df99-default-rtdb.firebaseio.com/config/auth.json';
+let authDaNuvem = {};
+try {
+  const res = await fetch(FIREBASE_AUTH_URL);
+  if (res.ok) {
+    const data = await res.json();
+    if (data && typeof data === 'object') authDaNuvem = data;
+  }
+} catch {}
+
+function authPadrao() {
+  const base = {
+    logoUrl: '',
+    bannerUrl: '',
+    cor: '#5865F2',
+    fundo1: '#1e1b4b',
+    fundo2: '#312e81',
+    titulo: 'Verificação de Membro',
+    descricao: 'Autorize sua conta para liberar compras e acesso completo no servidor.',
+    textoBotao: 'Autorizar com Discord',
+    modo: 'embed',
+    authUrl: '',
+    cargoVerificadoId: '',
+    setupChannelId: '',
+    setupMessageId: '',
+  };
+  for (const k of Object.keys(base)) {
+    const v = authDaNuvem[k];
+    if (v !== undefined && v !== null && v !== '') base[k] = v;
+  }
+  return base;
+}
+
+// Restaura campos vazios dos servidores já salvos com o que está na nuvem
+for (const gs of Object.values(state.guilds || {})) {
+  if (!gs.auth) gs.auth = {};
+  for (const [k, v] of Object.entries(authDaNuvem)) {
+    if (v !== undefined && v !== null && v !== '' && !gs.auth[k]) gs.auth[k] = v;
+  }
+}
+
 export async function saveState() {
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(STATE_FILE, JSON.stringify(state, null, 2));
@@ -27,18 +71,7 @@ export function defaultGuildState() {
     currency: 'BRL',
     locale: 'pt_BR',
     products: [],
-    auth: {
-      logoUrl: '',
-      bannerUrl: '',
-      cor: '#5865F2',
-      fundo1: '#1e1b4b',
-      fundo2: '#312e81',
-      titulo: 'Verificação de Membro',
-      descricao: 'Autorize sua conta para liberar compras e acesso completo no servidor.',
-      textoBotao: 'Autorizar com Discord',
-      modo: 'embed',
-      authUrl: '',
-    },
+    auth: authPadrao(),
     channels: {
       orderLogs: null,
       publicPurchases: null,
