@@ -122,10 +122,55 @@ function authPanel(guild, gs) {
   };
 }
 
-function mainPanel(guild) {
+function mainPanel(guild, gs) {
   const banner = localAsset(ASSETS.mainBannerFile);
+
+  const e = embed(
+    `SFrames\n⚙️ Painel de Controle`,
+    [
+      '> **Bem-vindo(a)!** Gerencie toda a sua aplicação com total liberdade.',
+      '',
+      '**🛒 Minha loja** — Produtos, estoque, cupons e entregas',
+      '**🔓 Auth** — Verificação OAuth2 · keyauth & puxar membros',
+      '**🎫 Ticket** — Central de atendimento ao cliente',
+      '**👋 Boas-Vindas** — Receba novos membros com estilo',
+      '**⚡ Automações** — Tarefas que rodam sozinhas 24/7',
+      '**🎨 Customizar** — Visual do bot: cores, status e marca',
+      '**☁️ zenCloud** — Sincronização segura na nuvem',
+      '**📜 Extrato** — Histórico completo de vendas',
+      '**🎉 Giveaway** — Sorteios para engajar a comunidade',
+      '**🛡️ zenProtect** — Proteção anti-raid e anti-fake',
+    ].join('\n'),
+    guild,
+    'Painel Principal',
+  );
+  try {
+    const cor = parseHex(gs?.temaCor || '#5865F2');
+    e.setColor(cor);
+    if (guild?.iconURL) {
+      const icon = guild.iconURL({ size: 128 });
+      if (icon) e.setThumbnail(icon);
+    }
+
+    // Estatísticas ao vivo
+    if (gs) {
+      const produtos = gs.products?.length || 0;
+      let estoque = 0;
+      for (const p of gs.products || []) {
+        for (const f of p.fields || []) estoque += f.stock?.length || 0;
+      }
+      const tickets = gs.ticket?.functions?.length || 0;
+      const verificados = (gs.auth?.setupChannelId ? 'ativo' : '—');
+      e.addFields(
+        { name: '📦 Produtos', value: `\`${produtos}\``, inline: true },
+        { name: '🗃️ Estoque', value: `\`${estoque}\``, inline: true },
+        { name: '🎟️ Funções ticket', value: `\`${tickets}\``, inline: true },
+      );
+    }
+  } catch {}
+
   const payload = {
-    embeds: [],
+    embeds: [e],
     components: [
       new ActionRowBuilder().addComponents(
         button(id('store'), 'Minha loja', ButtonStyle.Success, EMOJI.store),

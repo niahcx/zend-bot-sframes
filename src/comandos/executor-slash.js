@@ -412,12 +412,12 @@ async function handleSlashCommand(interaction, gs) {
   const guild = interaction.guild;
   const options = interaction.options;
 
-  if (command === 'panel') return interaction.reply({ ...mainPanel(guild), ephemeral: true });
+  if (command === 'panel') return interaction.reply({ ...mainPanel(guild, gs), ephemeral: true });
   if (command === 'ajuda') return interaction.reply({ ...helpPanel(guild), ephemeral: true });
   if (command === 'zenwallet') return interaction.reply({ ...zenWalletPanel(guild, gs), ephemeral: true });
   if (command === 'managetickets') return interaction.reply({ ...ticketManagerPanel(guild, gs), ephemeral: true });
   if (command === 'ticketstaff') return interaction.reply({ ...ticketStaffPanel(guild), ephemeral: true });
-  if (command === 'tutorial') return interaction.reply({ content: 'Tutorial reiniciado. Comece pelas configurações, depois crie produtos e publique mensagens.', ...mainPanel(guild), ephemeral: true });
+  if (command === 'tutorial') return interaction.reply({ content: 'Tutorial reiniciado. Comece pelas configurações, depois crie produtos e publique mensagens.', ...mainPanel(guild, gs), ephemeral: true });
 
   if (command === 'sorteio') {
     const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);

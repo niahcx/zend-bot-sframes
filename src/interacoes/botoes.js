@@ -142,7 +142,7 @@ export function criarHandlerBotoes(ctx) {
   if (await tratarBotaoOutrasAutomacoes(interaction, gs, action, a, b)) return;
 
   switch (action) {
-    case 'home': return sendOrUpdate(interaction, mainPanel(guild));
+    case 'home': return sendOrUpdate(interaction, mainPanel(guild, gs));
     case 'store': return sendOrUpdate(interaction, storePanel(guild, gs, interaction.user));
     case 'ticket': return sendOrUpdate(interaction, ticketPanel(guild, gs));
     case 'welcome': return sendOrUpdate(interaction, welcomePanel(guild, gs));
