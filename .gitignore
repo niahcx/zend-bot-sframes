@@ -1,0 +1,14 @@
+# Ignorar config.json com segredos (token do bot)
+config.json
+
+# Ignorar dados locais e logs
+/data
+/logs
+
+# Pastas geradas
+node_modules/*
+!.node_modules/.package-lock.json
+
+# Arquivos de boot
+*.lock
+.env
