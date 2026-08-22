@@ -7,6 +7,7 @@ import {
   joinVoiceChannel,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
+import { ChannelType } from 'discord.js';
 
 // guildId → channelId desejado
 const alvos = new Map();
@@ -14,7 +15,7 @@ const alvos = new Map();
 export async function entrarEmCall(guild, canalId) {
   const canal = await guild.channels.fetch(canalId).catch(() => null);
   if (!canal) return { ok: false, msg: '❌ Canal não encontrado. Verifique o ID.' };
-  const tipos = ['GuildVoice', 'GuildStageVoice'];
+  const tipos = [ChannelType.GuildVoice, ChannelType.GuildStageVoice];
   if (!tipos.includes(canal.type)) {
     return { ok: false, msg: '❌ Esse canal não é de voz (use o ID de um canal de voz ou palco).' };
   }
