@@ -13,6 +13,7 @@ export function criarHandlerModais(ctx) {
     TextInputStyle,
     antiFakePanel,
     automationFeaturePanel,
+    authPanel,
     availableStock,
     badgesPanel,
     button,

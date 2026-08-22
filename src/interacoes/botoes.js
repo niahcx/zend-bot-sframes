@@ -31,6 +31,7 @@ export function criarHandlerBotoes(ctx) {
     cartField,
     cartPayload,
     cartProduct,
+    authPanel,
     channelSelectRow,
     channelsPanel,
     clampCartQuantity,
