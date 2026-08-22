@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SFrames - Autorização do Bot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: white;
+      padding: 40px 50px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 30px;
+      background: linear-gradient(135deg, #ff6b6b, #feca57);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: white;
+      font-weight: bold;
+    }
+
+    h1 {
+      color: #2d3436;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      color: #636e71;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .oauth-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .oauth-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .oauth-button:active {
+      transform: translateY(0);
+    }
+
+    .divider {
+      margin: 30px 0;
+      display: flex;
+      align-items: center;
+      color: #636e71;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '---';
+      flex: 1;
+      color: #636e71;
+    }
+
+    .info {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 12px;
+      color: #777;
+    }
+
+    .info a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .info a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="logo">SF</div>
+    
+    <h1>SFrames Bot</h1>
+    <p class="subtitle">Clique abaixo para autorizar o bot no seu servidor</p>
+    
+    <div class="divider"></div>
+    
+    <a href="https://discord.com/oauth2/authorize?client_id=1540765314185437224&scope=bot%20applications.commands&permissions=268438528" class="oauth-button">
+      Autorizar Bot
+    </a>
+    
+    <div class="divider"></div>
+    
+    <div class="info">
+      <p>Após autorizar, você será redirecionado de volta para o painel.</p>
+      <p>ID do Bot: 1540765314185437224</p>
+    </div>
+  </div>
+</body>
+</html>

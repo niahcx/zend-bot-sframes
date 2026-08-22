@@ -1,0 +1,25 @@
+{
+  "name": "zend-clone-bot",
+  "version": "1.0.0",
+  "description": "Base Zend/zenSallers — créditos: Flow Vazamentos · .gg/flowvazamentos",
+  "author": "Flow Vazamentos (.gg/flowvazamentos)",
+  "homepage": "https://discord.gg/flowvazamentos",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "syncemojis": "node src/index.js --sync-emojis",
+    "check": "node --check src/index.js",
+    "test:paineis": "node scripts/testar-paineis.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.100",
+    "discord.js": "^14.19.3"
+  },
+  "overrides": {
+    "undici": "6.27.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

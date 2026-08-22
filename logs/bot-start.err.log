@@ -1,0 +1,44 @@
+(node:11128) Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+DiscordAPIError[50035]: Invalid Form Body
+components[0].components[0].options[0].emoji.name[COMPONENT_INVALID_EMOJI]: Invalid emoji
+components[0].components[0].options[1].emoji.name[COMPONENT_INVALID_EMOJI]: Invalid emoji
+    at handleErrors (C:\Users\lima\Downloads\Bot Zend\node_modules\@discordjs\rest\dist\index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async SequentialHandler.runRequest (C:\Users\lima\Downloads\Bot Zend\node_modules\@discordjs\rest\dist\index.js:1163:23)
+    at async SequentialHandler.queueRequest (C:\Users\lima\Downloads\Bot Zend\node_modules\@discordjs\rest\dist\index.js:994:14)
+    at async _REST.request (C:\Users\lima\Downloads\Bot Zend\node_modules\@discordjs\rest\dist\index.js:1307:22)
+    at async TextChannel.send (C:\Users\lima\Downloads\Bot Zend\node_modules\discord.js\src\structures\interfaces\TextBasedChannel.js:195:15)
+    at async openTicket (file:///C:/Users/lima/Downloads/Bot%20Zend/src/index.js:5295:3)
+    at async Client.<anonymous> (file:///C:/Users/lima/Downloads/Bot%20Zend/src/index.js:4148:7) {
+  requestBody: {
+    files: [],
+    json: {
+      content: '<@1483405722296258570>',
+      tts: false,
+      nonce: undefined,
+      enforce_nonce: false,
+      embeds: [Array],
+      components: [Array],
+      username: undefined,
+      avatar_url: undefined,
+      allowed_mentions: undefined,
+      flags: undefined,
+      message_reference: undefined,
+      attachments: undefined,
+      sticker_ids: undefined,
+      thread_name: undefined,
+      applied_tags: undefined,
+      poll: undefined
+    }
+  },
+  rawError: {
+    message: 'Invalid Form Body',
+    code: 50035,
+    errors: { components: [Object] }
+  },
+  code: 50035,
+  status: 400,
+  method: 'POST',
+  url: 'https://discord.com/api/v10/channels/1518410927945420880/messages'
+}
