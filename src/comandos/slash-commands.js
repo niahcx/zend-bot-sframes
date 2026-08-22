@@ -2,6 +2,9 @@ import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 
 export const commands = [
   new SlashCommandBuilder().setName('syncemojis').setDescription('[Admin] Sincroniza emojis locais do clone Zend'),
+  new SlashCommandBuilder().setName('call').setDescription('[Admin] O bot entra e fica na call (reconecta sozinho)')
+    .addStringOption((option) => option.setName('canal_id').setDescription('ID do canal de voz').setRequired(true)),
+  new SlashCommandBuilder().setName('sair').setDescription('[Admin] O bot sai da call'),
   new SlashCommandBuilder().setName('panel').setDescription('[⚡⚙Admin] Use para abrir o painel de controle'),
   new SlashCommandBuilder().setName('add_ticket').setDescription('[⚡Admin] Adiciona um usuário ao ticket atual')
     .addUserOption((option) => option.setName('user').setDescription('Usuário que será adicionado ao ticket').setRequired(true)),

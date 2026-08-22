@@ -1,6 +1,8 @@
 ﻿// Executor dos slash commands do Zend clonando.
 // Aqui ficam as respostas dos comandos /panel, /sales, /entregar e similares.
 
+import { entrarEmCall, sairDaCall } from '../discord/call.js';
+
 export function criarExecutorSlash(contexto) {
   const {
     ActionRowBuilder,
@@ -415,6 +417,25 @@ async function handleSlashCommand(interaction, gs) {
   if (command === 'managetickets') return interaction.reply({ ...ticketManagerPanel(guild, gs), ephemeral: true });
   if (command === 'ticketstaff') return interaction.reply({ ...ticketStaffPanel(guild), ephemeral: true });
   if (command === 'tutorial') return interaction.reply({ content: 'Tutorial reiniciado. Comece pelas configurações, depois crie produtos e publique mensagens.', ...mainPanel(guild), ephemeral: true });
+
+  if (command === 'call' || command === 'sair') {
+    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.MoveMembers) ||
+      interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+    if (!ehAdmin) {
+      return interaction.reply({ content: '❌ Você precisa da permissão **Mover Membros** ou **Gerenciar Servidor**.', ephemeral: true });
+    }
+    if (command === 'sair') {
+      const saiu = sairDaCall(guild.id);
+      return interaction.reply({ content: saiu ? '✅ Saí da call.' : 'ℹ️ Não estava em nenhuma call.', ephemeral: true });
+    }
+    await interaction.deferReply({ ephemeral: true });
+    const canalId = options.getString('canal_id', true).replace(/\D/g, '');
+    const r = await entrarEmCall(guild, canalId);
+    if (!r.ok) return interaction.editReply({ content: r.msg });
+    return interaction.editReply({
+      content: `✅ **Entrei na call** <#${r.canal.id}> e vou **permanecer** nela — se a conexão cair, reconecto sozinho!${r.aviso ? `\n${r.aviso}` : ''}\n-# Use \`/sair\` para me tirar de lá.`,
+    });
+  }
 
   if (command === 'syncemojis') {
     if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {

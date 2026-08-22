@@ -35,8 +35,8 @@ export function registrarEventoBotPronto(
     try {
       await client.user.setPresence({
         status: 'online',
-        // Presence: marca do bot
-        activities: [{ name: CREDIT_NAME, type: ActivityType.Watching }],
+        // Presence: servidor oficial do bot
+        activities: [{ name: 'discord.gg/4BmJvwPxv9', type: ActivityType.Watching }],
       });
     } catch {
       /* ignore */
