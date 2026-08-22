@@ -1,6 +1,7 @@
 import { tratarModalAutomacoes } from '../automacoes/interacoes-automacoes.js';
 import { tratarModalOutrasAutomacoes } from '../automacoes/interacoes-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
+import { salvarAuthConfigNoFirebase } from '../infraestrutura/firebase-auth.js';
 
 export function criarHandlerModais(ctx) {
   const {
@@ -540,6 +541,30 @@ export function criarHandlerModais(ctx) {
     case 'modal-stock-request':
       gs.stockRequests.push({ type: 'stock', userId: interaction.user.id, product: get('product'), quantity: get('quantity'), at: Date.now() });
       return interaction.reply({ content: `Solicitação de estoque registrada para \`${get('product')}\`.`, ephemeral: true });
+
+    case 'modal-auth-logo': {
+      gs.auth = gs.auth || {};
+      gs.auth.logoUrl = get('logoUrl') || '';
+      await salvarAuthConfigNoFirebase(gs.auth);
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
+    case 'modal-auth-cores': {
+      gs.auth = gs.auth || {};
+      const hex = (v, fallback) => (/^#[0-9a-f]{6}$/i.test(v || '') ? v : fallback);
+      gs.auth.cor = hex(get('cor'), gs.auth.cor || '#5865F2');
+      gs.auth.fundo1 = hex(get('fundo1'), gs.auth.fundo1 || '#1e1b4b');
+      gs.auth.fundo2 = hex(get('fundo2'), gs.auth.fundo2 || '#312e81');
+      await salvarAuthConfigNoFirebase(gs.auth);
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
+    case 'modal-auth-textos': {
+      gs.auth = gs.auth || {};
+      gs.auth.titulo = get('titulo') || gs.auth.titulo;
+      gs.auth.descricao = get('descricao') || gs.auth.descricao;
+      gs.auth.textoBotao = get('textoBotao') || gs.auth.textoBotao;
+      await salvarAuthConfigNoFirebase(gs.auth);
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    }
     default:
       return interaction.reply({ content: 'Não foi possível identificar este formulário. Abra o painel novamente.', ephemeral: true });
   }

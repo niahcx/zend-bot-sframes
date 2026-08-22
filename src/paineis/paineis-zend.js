@@ -54,6 +54,48 @@ export function criarPaineisZend(contexto) {
     textInput,
   } = contexto;
 
+function authPanel(guild, gs) {
+  const a = gs.auth || {};
+  const modoLabel = a.modo === 'container' ? 'Container (Components V2)' : 'Embed (clássico)';
+  const e = embed(
+    `SFrames\nAuth / KeyAuth`,
+    [
+      `${EMOJI.secured} **Personalize sua página de verificação**`,
+      '',
+      `**Logo (foto):** ${a.logoUrl ? `\`${a.logoUrl.slice(0, 40)}...\`` : '`Não definida`'}`,
+      `**Cor principal:** \`${a.cor || '#5865F2'}\``,
+      `**Fundo:** \`${a.fundo1 || '#1e1b4b'}\` → \`${a.fundo2 || '#312e81'}\``,
+      `**Título:** \`${a.titulo || 'Verificação de Membro'}\``,
+      `**Descrição:** \`${(a.descricao || '—').slice(0, 60)}\``,
+      `**Texto do botão:** \`${a.textoBotao || 'Autorizar com Discord'}\``,
+      `**Modo de exibição:** \`${modoLabel}\``,
+      `**Link da página:** ${a.authUrl ? `[abrir](${a.authUrl})` : '`Não configurado`'}`,
+      '',
+      '> Tudo que você salvar aqui vai direto para o site de verificação automaticamente.',
+    ].join('\n'),
+    guild,
+    'Auth',
+  );
+  return {
+    embeds: [e],
+    components: [
+      new ActionRowBuilder().addComponents(
+        button(id('auth-logo'), 'Foto / Logo', ButtonStyle.Primary, EMOJI.upload),
+        button(id('auth-cores'), 'Cores', ButtonStyle.Primary, EMOJI.roller),
+        button(id('auth-textos'), 'Textos', ButtonStyle.Primary, EMOJI.title),
+      ),
+      new ActionRowBuilder().addComponents(
+        button(id('auth-modo'), `Modo: ${modoLabel}`, ButtonStyle.Secondary, EMOJI.settings),
+        linkButton(a.authUrl || 'https://discord.com', 'Abrir página de verificação'),
+      ),
+      new ActionRowBuilder().addComponents(
+        button(id('auth-sync'), 'Salvar no site (Firebase)', ButtonStyle.Success, EMOJI.upload),
+        button(id('main'), 'Voltar', ButtonStyle.Secondary, EMOJI.left),
+      ),
+    ],
+  };
+}
+
 function mainPanel(guild) {
   const banner = localAsset(ASSETS.mainBannerFile);
   const payload = {
@@ -61,6 +103,7 @@ function mainPanel(guild) {
     components: [
       new ActionRowBuilder().addComponents(
         button(id('store'), 'Minha loja', ButtonStyle.Success, EMOJI.store),
+        button(id('auth-panel'), 'Auth', ButtonStyle.Success, EMOJI.secured),
         button(id('ticket'), 'Ticket', ButtonStyle.Primary, EMOJI.support),
         button(id('welcome'), 'Boas-Vindas', ButtonStyle.Primary, EMOJI.welcome),
         button(id('automations'), 'Automações', ButtonStyle.Primary, EMOJI.refresh),
@@ -2769,6 +2812,7 @@ function parsePrice(value) {
     mainPanel,
     productListPanel,
     storePanel,
+    authPanel,
     positionsPanel,
     positionPanel,
     balancePanel,

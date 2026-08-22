@@ -4,6 +4,7 @@ import { painelMensagensAutomaticas } from '../automacoes/paineis-mensagens.js';
 import { painelLimpezaAutomatica } from '../automacoes/paineis-limpeza.js';
 import { painelInviteTracker, painelLockUnlock, painelMonitorFeedbacks, painelRestock } from '../automacoes/paineis-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
+import { salvarAuthConfigNoFirebase } from '../infraestrutura/firebase-auth.js';
 
 export function criarHandlerBotoes(ctx) {
   const {
@@ -261,6 +262,38 @@ export function criarHandlerBotoes(ctx) {
       ]));
     case 'store-oauth-preview':
       return interaction.reply({ embeds: [embed('Autenticação OAuth2', 'Para continuar, autentique-se pelo link de autorização da SFrames.', guild, 'OAuth2')], ephemeral: true });
+
+    case 'auth-panel':
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    case 'auth-logo':
+      return interaction.showModal(modal(id('modal-auth-logo'), 'Foto da página de Auth', [
+        textInput('logoUrl', 'URL DA LOGO', 'Cole o link da imagem (ex: https://i.imgur.com/...)', TextInputStyle.Short, false),
+      ]));
+    case 'auth-cores':
+      return interaction.showModal(modal(id('modal-auth-cores'), 'Cores da página de Auth', [
+        textInput('cor', 'COR PRINCIPAL (hex)', 'Ex: #5865F2', TextInputStyle.Short, false),
+        textInput('fundo1', 'FUNDO GRADIENTE 1 (hex)', 'Ex: #1e1b4b', TextInputStyle.Short, false),
+        textInput('fundo2', 'FUNDO GRADIENTE 2 (hex)', 'Ex: #312e81', TextInputStyle.Short, false),
+      ]));
+    case 'auth-textos':
+      return interaction.showModal(modal(id('modal-auth-textos'), 'Textos da página de Auth', [
+        textInput('titulo', 'TÍTULO', 'Ex: Verificação de Membro', TextInputStyle.Short, false),
+        textInput('descricao', 'DESCRIÇÃO', 'Texto explicativo da página', TextInputStyle.Paragraph, false),
+        textInput('textoBotao', 'TEXTO DO BOTÃO', 'Ex: Autorizar com Discord', TextInputStyle.Short, false),
+      ]));
+    case 'auth-modo':
+      gs.auth = gs.auth || {};
+      gs.auth.modo = gs.auth.modo === 'container' ? 'embed' : 'container';
+      return sendOrUpdate(interaction, authPanel(guild, gs));
+    case 'auth-sync': {
+      await interaction.deferReply({ ephemeral: true });
+      const ok = await salvarAuthConfigNoFirebase(gs.auth);
+      return interaction.editReply({
+        content: ok
+          ? `${EMOJI.yesgenesis} | Página de verificação atualizada no site! Abra-a para conferir.`
+          : `${EMOJI.no} | Falha ao salvar no Firebase. Verifique a conexão.`,
+      });
+    }
 
     case 'product-new':
       return interaction.showModal(modal(id('modal-product-name'), 'Criar Produto - Etapa 1', [

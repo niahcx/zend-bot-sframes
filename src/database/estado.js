@@ -27,6 +27,18 @@ export function defaultGuildState() {
     currency: 'BRL',
     locale: 'pt_BR',
     products: [],
+    auth: {
+      logoUrl: '',
+      bannerUrl: '',
+      cor: '#5865F2',
+      fundo1: '#1e1b4b',
+      fundo2: '#312e81',
+      titulo: 'Verificação de Membro',
+      descricao: 'Autorize sua conta para liberar compras e acesso completo no servidor.',
+      textoBotao: 'Autorizar com Discord',
+      modo: 'embed',
+      authUrl: '',
+    },
     channels: {
       orderLogs: null,
       publicPurchases: null,
