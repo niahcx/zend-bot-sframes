@@ -30,14 +30,14 @@ function guildIcon(guild) {
 function footerSuporte(guild, label = 'Equipe de Suporte') {
   const name = guild?.name || 'SFrames';
   return {
-    text: `${label} - ${name} · ${CREDIT_FOOTER}`.slice(0, 2048),
+    text: [`${label} - ${name}`, CREDIT_FOOTER].filter(Boolean).join(' · ').slice(0, 2048),
     iconURL: guildIcon(guild),
   };
 }
 
 function footerLoja(guild) {
   return {
-    text: `${guild?.name || 'Loja'} · ${CREDIT_FOOTER}`.slice(0, 2048),
+    text: [guild?.name || 'SFrames', CREDIT_FOOTER].filter(Boolean).join(' · ').slice(0, 2048),
     iconURL: guildIcon(guild),
   };
 }

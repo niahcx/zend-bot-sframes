@@ -300,6 +300,10 @@ export function criarHandlerBotoes(ctx) {
       return interaction.showModal(modal(id('modal-auth-link'), 'Link do site de verificação', [
         textInput('url', 'URL DO SITE*', 'Ex: https://sframes-auth.up.railway.app', TextInputStyle.Short, true),
       ]));
+    case 'auth-cargo':
+      return interaction.showModal(modal(id('modal-auth-cargo'), 'Cargo de Verificado', [
+        textInput('cargoId', 'ID DO CARGO*', 'Clique direito no cargo → Copiar ID', TextInputStyle.Short, true),
+      ]));
     case 'auth-setup':
       return interaction.reply({
         content: '**Selecione o canal** onde o painel de verificação será enviado:',

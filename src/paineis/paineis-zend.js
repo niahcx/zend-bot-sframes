@@ -69,6 +69,7 @@ function authPanel(guild, gs) {
       `**Descrição:** \`${(a.descricao || '—').slice(0, 60)}\``,
       `**Texto do botão:** \`${a.textoBotao || 'Autorizar com Discord'}\``,
       `**Modo de exibição:** \`${modoLabel}\``,
+      `**Cargo verificado:** ${a.cargoVerificadoId ? `<@&${a.cargoVerificadoId}>` : '`Não configurado`'}`,
       `**Link da página:** ${a.authUrl ? `[abrir](${a.authUrl})` : '`Não configurado`'}`,
       '',
       '> Tudo que você salvar aqui vai direto para o site de verificação automaticamente.',
@@ -87,6 +88,7 @@ function authPanel(guild, gs) {
       new ActionRowBuilder().addComponents(
         button(id('auth-modo'), `Modo: ${modoLabel}`, ButtonStyle.Secondary, EMOJI.settings),
         button(id('auth-link'), 'Link do site', ButtonStyle.Secondary, EMOJI.url),
+        button(id('auth-cargo'), 'Cargo Verificado', ButtonStyle.Primary, EMOJI.users),
         linkButton(a.authUrl || 'https://discord.com', 'Abrir página de verificação'),
       ),
       new ActionRowBuilder().addComponents(

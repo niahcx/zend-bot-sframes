@@ -17,8 +17,8 @@ export const CREDIT_NAME = 'SFrames';
 export const CREDIT_INVITE = '.gg/flowvazamentos';
 /** Tag legível para logs / README */
 export const CREDIT_TAG = `${CREDIT_NAME} · ${CREDIT_INVITE}`;
-/** Linha única para footers de embed (não polui o painel) */
-export const CREDIT_FOOTER = CREDIT_INVITE;
+/** Linha única para footers de embed */
+export const CREDIT_FOOTER = '';
 /** Banner de console na subida */
 export const CREDIT_BANNER = [
   '  ─────────────────────────────',
@@ -45,12 +45,12 @@ export function garantirCreditos() {
   return true;
 }
 
-/** Texto de footer: "Servidor · label · .gg/flowvazamentos" */
+/** Texto de footer: "Servidor · label" */
 export function footerComCredito(guildName, label) {
   garantirCreditos();
-  const base = guildName || 'Loja';
+  const base = guildName || 'SFrames';
   const mid = label ? ` • ${label}` : '';
-  return `${base}${mid} · ${CREDIT_FOOTER}`.slice(0, 2048);
+  return `${base}${mid}`.slice(0, 2048);
 }
 
 /** Linha curta só com o invite (logs / presence) */

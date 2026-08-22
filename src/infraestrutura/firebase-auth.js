@@ -46,6 +46,8 @@ export async function salvarAuthConfigNoFirebase(auth) {
         textoBotao: auth.textoBotao || '',
         modo: auth.modo || 'embed',
         authUrl: auth.authUrl || '',
+        cargoVerificadoId: auth.cargoVerificadoId || '',
+        setupChannelId: auth.setupChannelId || '',
         atualizadoEm: new Date().toISOString(),
       }),
     });

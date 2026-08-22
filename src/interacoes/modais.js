@@ -575,6 +575,31 @@ export function criarHandlerModais(ctx) {
       await salvarAuthConfigNoFirebase(gs.auth);
       return sendOrUpdate(interaction, authPanel(guild, gs));
     }
+    case 'modal-auth-cargo': {
+      gs.auth = gs.auth || {};
+      const cargoId = (get('cargoId') || '').replace(/\D/g, '');
+      if (!cargoId) return interaction.reply({ content: `${EMOJI.no} | ID de cargo inválido.`, flags: 64 });
+      let aviso = '';
+      try {
+        const role = await guild.roles.fetch(cargoId);
+        if (!role) return interaction.reply({ content: `${EMOJI.no} | Não encontrei esse cargo neste servidor.`, flags: 64 });
+        if (role.managed || cargoId === guild.id) {
+          return interaction.reply({ content: `${EMOJI.no} | Esse cargo não pode ser atribuído (é gerenciado por integração ou é @everyone).`, flags: 64 });
+        }
+        if (guild.members.me && role.comparePositionTo(guild.members.me.roles.highest) >= 0) {
+          aviso = `\n⚠️ Meu cargo está abaixo de <@&${cargoId}> — mova meu cargo para cima para eu conseguir atribuí-lo.`;
+        }
+      } catch {
+        return interaction.reply({ content: `${EMOJI.no} | Erro ao verificar o cargo. Tente novamente.`, flags: 64 });
+      }
+      gs.auth.cargoVerificadoId = cargoId;
+      await salvarAuthConfigNoFirebase(gs.auth);
+      await interaction.reply({
+        content: `${EMOJI.yesgenesis} | Cargo verificado definido: <@&${cargoId}>${aviso}`,
+        flags: 64,
+      });
+      return sendOrUpdate(interaction, authPanel(guild, gs)).catch(() => {});
+    }
     case 'modal-auth-puxar': {
       await interaction.deferReply({ flags: 64 });
       const amount = Math.max(1, Math.min(5000, Number(get('amount')) || 1));
