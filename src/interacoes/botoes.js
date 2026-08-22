@@ -320,9 +320,21 @@ export function criarHandlerBotoes(ctx) {
       if (!url) {
         return interaction.reply({ content: '🔒 A verificação ainda não está configurada. Peça à equipe para configurar em /panel → Auth.', flags: MessageFlags.Ephemeral });
       }
+      const a = gs.auth;
+      const corInt = (() => { const n = parseInt(String(a.cor || '').replace('#', ''), 16); return Number.isFinite(n) ? n : 0x5865f2; })();
+      const e = embed(`🔓 ${a.titulo || 'Verificação'}`, [
+        a.descricao || 'Autorize sua conta para liberar acesso completo.',
+        '',
+        '**Como verificar:**',
+        '**1.** Clique no botão abaixo',
+        '**2.** Autorize o bot na janela do Discord',
+        '**3.** Volte aqui — acesso liberado! 🎉',
+      ].join('\n'), guild, 'Auth');
+      e.setColor(corInt);
+      if (a.logoUrl) e.setThumbnail(a.logoUrl);
       return interaction.reply({
-        embeds: [embed(gs.auth.titulo || 'Verificação', `${gs.auth.descricao || ''}\n\n> Clique abaixo para autorizar e se verificar.`, guild, 'Auth')],
-        components: [new ActionRowBuilder().addComponents(linkButton(url, gs.auth.textoBotao || 'Verificar-se'))],
+        embeds: [e],
+        components: [new ActionRowBuilder().addComponents(linkButton(url, a.textoBotao || 'Verificar-se'))],
         flags: MessageFlags.Ephemeral,
       });
     }
