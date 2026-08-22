@@ -601,68 +601,106 @@ export function criarHandlerModais(ctx) {
       return sendOrUpdate(interaction, authPanel(guild, gs)).catch(() => {});
     }
     case 'modal-auth-puxar': {
-      await interaction.deferReply({ flags: 64 });
-      const amount = Math.max(1, Math.min(5000, Number(get('amount')) || 1));
-      const targetGuildId = (get('targetGuild') || '').replace(/\D/g, '');
-      if (!targetGuildId) return interaction.editReply({ content: `${EMOJI.no} | ID do servidor alvo inválido.` });
+      try {
+        await interaction.deferReply({ flags: 64 });
+        const amount = Math.max(1, Math.min(5000, Number(get('amount')) || 1));
+        const targetGuildId = (get('targetGuild') || '').replace(/\D/g, '');
+        if (!targetGuildId) return interaction.editReply({ content: `${EMOJI.no} | ID do servidor alvo inválido.` });
 
-      const lista = await listarVerificadosFirebase();
-      const alvo = lista.slice(0, amount);
-      if (!alvo.length) return interaction.editReply({ content: `${EMOJI.no} | Nenhum membro verificado no Firebase ainda.` });
-
-      const progresso = (p, t, ok, ja, falha) =>
-        `## Puxando membros…\n**Progresso:** ${p}/${t}\n**Puxados:** ${ok} · **Já estavam:** ${ja} · **Falhas:** ${falha}`;
-      await interaction.editReply({ content: progresso(0, alvo.length, 0, 0, 0) });
-
-      const puxarComToken = async (userId, accessToken) => {
-        const res = await fetch(`https://discord.com/api/v10/guilds/${targetGuildId}/members/${userId}`, {
-          method: 'PUT',
-          headers: { Authorization: `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: accessToken }),
-        });
-        return res.status; // 201 = entrou, 204 = já estava
-      };
-
-      const renovarToken = async (u) => {
-        const secret = process.env.CLIENT_SECRET;
-        if (!secret || !u.refresh_token) return null;
-        try {
-          const body = new URLSearchParams({
-            client_id: process.env.CLIENT_ID || '',
-            client_secret: secret,
-            grant_type: 'refresh_token',
-            refresh_token: u.refresh_token,
+        // ── Pré-checagem: o bot precisa ESTAR no servidor alvo ──
+        const alvoGuild = await interaction.client.guilds.fetch(targetGuildId).catch(() => null);
+        if (!alvoGuild) {
+          const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${process.env.CLIENT_ID || CLIENT_ID}&scope=bot%20applications.commands&permissions=268446734`;
+          return interaction.editReply({
+            content: `${EMOJI.no} | **Não estou no servidor alvo!** Adicione-me lá primeiro e tente de novo:\n[Adicionar bot nesse servidor](${inviteUrl})`,
           });
-          const res = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', body });
-          if (!res.ok) return null;
-          const data = await res.json();
-          await salvarTokensFirebase(u.id, { access_token: data.access_token, refresh_token: data.refresh_token });
-          return data.access_token;
-        } catch { return null; }
-      };
-
-      let puxados = 0, jaEstavam = 0, falhas = 0, processados = 0;
-      for (const u of alvo) {
-        if (!u.access_token) { falhas++; processados++; continue; }
-        try {
-          let status = await puxarComToken(u.id, u.access_token);
-          if (status !== 201 && status !== 204) {
-            const novoToken = await renovarToken(u);
-            if (novoToken) status = await puxarComToken(u.id, novoToken);
-          }
-          if (status === 201) puxados++;
-          else if (status === 204) jaEstavam++;
-          else falhas++;
-        } catch { falhas++; }
-        processados++;
-        if (processados % 5 === 0 || processados === alvo.length) {
-          await interaction.editReply({ content: progresso(processados, alvo.length, puxados, jaEstavam, falhas) }).catch(() => {});
         }
+        const meNoAlvo = await alvoGuild.members.fetchMe().catch(() => null);
+        if (!meNoAlvo || !meNoAlvo.permissions.has('CreateGuildExpressions') && !meNoAlvo.permissions.has('ManageRoles')) {
+          // segue mesmo assim; erros individuais serão reportados
+        }
+
+        const lista = await listarVerificadosFirebase();
+        const alvo = lista.slice(0, amount);
+        if (!alvo.length) return interaction.editReply({ content: `${EMOJI.no} | Nenhum membro verificado no Firebase ainda.` });
+
+        const progresso = (p, t, ok, ja, falha) =>
+          `## 🚚 Puxando membros…\n**Progresso:** ${p}/${t}\n**Puxados:** ${ok} · **Já estavam:** ${ja} · **Falhas:** ${falha}`;
+        await interaction.editReply({ content: progresso(0, alvo.length, 0, 0, 0) });
+
+        const puxarComToken = async (userId, accessToken) => {
+          const res = await fetch(`https://discord.com/api/v10/guilds/${targetGuildId}/members/${userId}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ access_token: accessToken }),
+          });
+          let motivo = '';
+          if (res.status === 403) motivo = 'sem permissão/token inválido';
+          else if (res.status === 404) motivo = 'usuário não encontrado';
+          else if (res.status === 429) motivo = 'rate limit';
+          else if (res.status >= 500) motivo = 'erro do Discord';
+          return { status: res.status, motivo };
+        };
+
+        const renovarToken = async (u) => {
+          const secret = process.env.CLIENT_SECRET;
+          if (!secret || !u.refresh_token) return null;
+          try {
+            const body = new URLSearchParams({
+              client_id: process.env.CLIENT_ID || '',
+              client_secret: secret,
+              grant_type: 'refresh_token',
+              refresh_token: u.refresh_token,
+            });
+            const res = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', body });
+            if (!res.ok) return null;
+            const data = await res.json();
+            await salvarTokensFirebase(u.id, { access_token: data.access_token, refresh_token: data.refresh_token });
+            return data.access_token;
+          } catch { return null; }
+        };
+
+        let puxados = 0, jaEstavam = 0, falhas = 0, processados = 0;
+        const motivos = {};
+        const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        for (const u of alvo) {
+          if (!u.access_token) { falhas++; processados++; continue; }
+          try {
+            let resultado = await puxarComToken(u.id, u.access_token);
+            if (resultado.status !== 201 && resultado.status !== 204) {
+              const novoToken = await renovarToken(u);
+              if (novoToken) resultado = await puxarComToken(u.id, novoToken);
+            }
+            if (resultado.status === 201) puxados++;
+            else if (resultado.status === 204) jaEstavam++;
+            else {
+              falhas++;
+              const m = resultado.motivo || `HTTP ${resultado.status}`;
+              motivos[m] = (motivos[m] || 0) + 1;
+            }
+          } catch { falhas++; }
+          processados++;
+          if (processados % 5 === 0 || processados === alvo.length) {
+            await interaction.editReply({ content: progresso(processados, alvo.length, puxados, jaEstavam, falhas) }).catch(() => {});
+          }
+          await espera(600); // evita rate limit
+        }
+
+        const linhasMotivo = Object.entries(motivos)
+          .map(([m, q]) => `-# ${q}x ${m}`)
+          .join('\n');
+        const dica = falhas > 0 && puxados === 0
+          ? '\n> 💡 Se todas falharam com "sem permissão": verifique se o bot tem cargo **acima** dos membros e permissão de gerenciar cargos no servidor alvo.'
+          : '';
+        await interaction.editReply({
+          content: `# ✅ Puxão concluído!\n**Puxados:** ${puxados}\n**Já estavam no servidor:** ${jaEstavam}\n**Falhas:** ${falhas}${linhasMotivo ? `\n\n**Motivos:**\n${linhasMotivo}` : ''}${dica}`,
+        }).catch(() => {});
+        return;
+      } catch (err) {
+        console.error('[puxar]', err);
+        return interaction.editReply({ content: `${EMOJI.no} | Erro no puxão: \`${err.message}\`` }).catch(() => {});
       }
-      await interaction.editReply({
-        content: `# ✅ Puxão concluído!\n**Puxados:** ${puxados}\n**Já estavam no servidor:** ${jaEstavam}\n**Falhas:** ${falhas}`,
-      });
-      return;
     }
     default:
       return interaction.reply({ content: 'Não foi possível identificar este formulário. Abra o painel novamente.', ephemeral: true });
