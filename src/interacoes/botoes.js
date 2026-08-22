@@ -6,6 +6,7 @@ import { painelInviteTracker, painelLockUnlock, painelMonitorFeedbacks, painelRe
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
 import { salvarAuthConfigNoFirebase, listarVerificadosFirebase } from '../infraestrutura/firebase-auth.js';
 import { authSetupPayload } from '../paineis/auth-setup.js';
+import { participar as participarSorteio } from '../sorteios/sorteio-v2.js';
 import { ChannelSelectMenuBuilder, ChannelType, MessageFlags } from 'discord.js';
 
 export function criarHandlerBotoes(ctx) {
@@ -268,6 +269,8 @@ export function criarHandlerBotoes(ctx) {
 
     case 'auth-panel':
       return sendOrUpdate(interaction, authPanel(guild, gs));
+    case 'sorteio-btn':
+      return participarSorteio(interaction, gs, a);
     case 'auth-logo':
       return interaction.showModal(modal(id('modal-auth-logo'), 'Foto da página de Auth', [
         textInput('logoUrl', 'URL DA LOGO', 'Cole o link da imagem (ex: https://i.imgur.com/...)', TextInputStyle.Short, false),

@@ -55,6 +55,7 @@ import { criarPaineisZend } from '../paineis/paineis-zend.js';
 import { iniciarAgendadorAutomacoes } from '../automacoes/servico-automacoes.js';
 import { patchInteracoesDiscord } from '../infraestrutura/patch-interacoes.js';
 import { garantirCreditos } from '../infraestrutura/creditos.js';
+import { iniciarAgendadorSorteios } from '../sorteios/sorteio-v2.js';
 
 // Branding Flow — se falhar, o bot não sobe
 garantirCreditos();
@@ -645,4 +646,5 @@ export async function iniciarBot() {
   validarAmbiente();
   await registerCommands({ token: TOKEN, clientId: CLIENT_ID, guildId: GUILD_ID });
   await client.login(TOKEN);
+  iniciarAgendadorSorteios(client);
 }

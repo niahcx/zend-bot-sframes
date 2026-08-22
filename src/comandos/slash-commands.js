@@ -5,6 +5,15 @@ export const commands = [
   new SlashCommandBuilder().setName('call').setDescription('[Admin] O bot entra e fica na call (reconecta sozinho)')
     .addStringOption((option) => option.setName('canal_id').setDescription('ID do canal de voz').setRequired(true)),
   new SlashCommandBuilder().setName('sair').setDescription('[Admin] O bot sai da call'),
+  new SlashCommandBuilder().setName('sorteio').setDescription('[Admin] Cria um sorteio bonito com botão de participação')
+    .addStringOption((o) => o.setName('premio').setDescription('O prêmio do sorteio').setRequired(true))
+    .addStringOption((o) => o.setName('duracao').setDescription('Ex: 30s, 10m, 2h, 1d').setRequired(true))
+    .addIntegerOption((o) => o.setName('vencedores').setDescription('Quantos vencedores (padrão: 1)').setMinValue(1).setMaxValue(20))
+    .addChannelOption((o) => o.setName('canal').setDescription('Canal onde postar (padrão: atual)'))
+    .addStringOption((o) => o.setName('foto').setDescription('URL da imagem do sorteio'))
+    .addStringOption((o) => o.setName('cor').setDescription('Cor hex (ex: #FF0000)')),
+  new SlashCommandBuilder().setName('dmtodos').setDescription('[Admin] Envia uma DM para todos os membros do servidor')
+    .addStringOption((o) => o.setName('mensagem').setDescription('A mensagem a enviar').setRequired(true)),
   new SlashCommandBuilder().setName('panel').setDescription('[⚡⚙Admin] Use para abrir o painel de controle'),
   new SlashCommandBuilder().setName('add_ticket').setDescription('[⚡Admin] Adiciona um usuário ao ticket atual')
     .addUserOption((option) => option.setName('user').setDescription('Usuário que será adicionado ao ticket').setRequired(true)),

@@ -2,6 +2,7 @@
 // Aqui ficam as respostas dos comandos /panel, /sales, /entregar e similares.
 
 import { entrarEmCall, sairDaCall } from '../discord/call.js';
+import { criarSorteio, payloadSorteio } from '../sorteios/sorteio-v2.js';
 
 export function criarExecutorSlash(contexto) {
   const {
@@ -417,6 +418,72 @@ async function handleSlashCommand(interaction, gs) {
   if (command === 'managetickets') return interaction.reply({ ...ticketManagerPanel(guild, gs), ephemeral: true });
   if (command === 'ticketstaff') return interaction.reply({ ...ticketStaffPanel(guild), ephemeral: true });
   if (command === 'tutorial') return interaction.reply({ content: 'Tutorial reiniciado. Comece pelas configurações, depois crie produtos e publique mensagens.', ...mainPanel(guild), ephemeral: true });
+
+  if (command === 'sorteio') {
+    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+    if (!ehAdmin) return interaction.reply({ content: '❌ Você precisa da permissão **Gerenciar Servidor**.', ephemeral: true });
+
+    await interaction.deferReply({ ephemeral: true });
+    const canal = options.getChannel('canal') || interaction.channel;
+    const r = criarSorteio({
+      guild,
+      premio: options.getString('premio'),
+      duracaoStr: options.getString('duracao', true),
+      vencedores: options.getInteger('vencedores') || 1,
+      canal,
+      foto: options.getString('foto'),
+      cor: options.getString('cor'),
+    });
+    if (!r.ok) return interaction.editReply({ content: r.msg });
+
+    try {
+      const msg = await canal.send(r.payload);
+      r.sorteio.messageId = msg.id;
+      return interaction.editReply({ content: `✅ **Sorteio criado!** ${canal} — termina <t:${Math.floor(r.sorteio.fimEm / 1000)}:R>.` });
+    } catch (err) {
+      return interaction.editReply({ content: `❌ Não consegui postar em ${canal}: \`${err.message}\`` });
+    }
+  }
+
+  if (command === 'dmtodos') {
+    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild) ||
+      interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
+    if (!ehAdmin) return interaction.reply({ content: '❌ Você precisa de **Gerenciar Servidor** ou **Administrador**.', ephemeral: true });
+
+    await interaction.deferReply({ ephemeral: true });
+    const mensagem = options.getString('mensagem', true);
+
+    let membros;
+    try {
+      membros = await guild.members.fetch();
+    } catch {
+      return interaction.editReply({ content: '❌ Não consegui buscar os membros.' });
+    }
+
+    const humanos = membros.filter((m) => !m.user.bot);
+    if (!humanos.size) return interaction.editReply({ content: 'ℹ️ Nenhum membro para enviar.' });
+
+    let enviados = 0, falhas = 0, processados = 0;
+    const progresso = () => `## 📨 Enviando DMs…\n**Progresso:** ${processados}/${humanos.size}\n**Enviadas:** ${enviados} · **Falhas:** ${falhas}`;
+    await interaction.editReply({ content: progresso() });
+    const espera = (ms) => new Promise((res) => setTimeout(res, ms));
+
+    for (const [, m] of humanos) {
+      try {
+        await m.send(`📬 **${guild.name}**\n\n${mensagem}`);
+        enviados++;
+      } catch { falhas++; }
+      processados++;
+      if (processados % 15 === 0 || processados === humanos.size) {
+        await interaction.editReply({ content: progresso() }).catch(() => {});
+      }
+      await espera(1200); // DM é pesado — pausa maior para evitar rate limit
+    }
+
+    return interaction.editReply({
+      content: `# ✅ DMs concluídas!\n**Enviadas:** \`${enviados}\`\n**Falhas:** \`${falhas}\`${falhas > 0 ? '\n> 💡 Falhas = membros com DM fechada ou bloqueio. É normal!' : ''}`,
+    }).catch(() => {});
+  }
 
   if (command === 'call' || command === 'sair') {
     const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.MoveMembers) ||
