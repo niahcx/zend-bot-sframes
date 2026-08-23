@@ -33,8 +33,18 @@ try {
 // ── Admins permitidos persistentes na nuvem (Firebase) ──────────
 // O filesystem do Railway é apagado a cada deploy; sem isso a lista
 // de admins adicionados via /panel → Add se perde a cada restart.
+// A lista é GLOBAL: quem for adicionado vale em qualquer servidor do bot.
 const FIREBASE_ADMINS_URL = 'https://rave-8df99-default-rtdb.firebaseio.com/config/adminsPorServidor.json';
+const FIREBASE_ADMINS_GLOBAL_URL = 'https://rave-8df99-default-rtdb.firebaseio.com/config/adminsGlobais.json';
 let adminsDaNuvem = {};
+let adminsGlobais = new Set();
+try {
+  const res = await fetch(FIREBASE_ADMINS_GLOBAL_URL);
+  if (res.ok) {
+    const data = await res.json();
+    if (Array.isArray(data)) for (const id of data) adminsGlobais.add(String(id));
+  }
+} catch {}
 try {
   const res = await fetch(FIREBASE_ADMINS_URL);
   if (res.ok) {
@@ -42,9 +52,38 @@ try {
     if (data && typeof data === 'object') adminsDaNuvem = data;
   }
 } catch {}
+// Migra a lista antiga por-servidor para a global
+for (const lista of Object.values(adminsDaNuvem)) {
+  if (Array.isArray(lista)) for (const id of lista) adminsGlobais.add(String(id));
+}
+
+async function sincronizarAdminsGlobais() {
+  try {
+    await fetch(FIREBASE_ADMINS_GLOBAL_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([...adminsGlobais]),
+    });
+  } catch (err) {
+    console.error('[admins-cloud]', err.message);
+  }
+}
+
+if (adminsGlobais.size) await sincronizarAdminsGlobais();
+
+/** Checa direto na lista global carregada da nuvem (independe de servidor/estado local). */
+export function eAdminGlobal(id) {
+  return adminsGlobais.has(String(id || ''));
+}
 
 export async function salvarAdminsNuvem(guildId, lista) {
-  adminsDaNuvem[guildId] = Array.isArray(lista) ? lista : [];
+  adminsDaNuvem[guildId] = Array.isArray(lista) ? lista.map(String) : [];
+  // Reconstrói a global com a união das listas por servidor (remove quem saiu)
+  adminsGlobais = new Set();
+  for (const l of Object.values(adminsDaNuvem)) {
+    if (Array.isArray(l)) for (const id of l) adminsGlobais.add(String(id));
+  }
+  await sincronizarAdminsGlobais();
   try {
     await fetch(FIREBASE_ADMINS_URL, {
       method: 'PUT',
@@ -239,10 +278,9 @@ export function mergeDefaults(target, defaults) {
 export function guildState(guildId) {
   state.guilds[guildId] = mergeDefaults(state.guilds[guildId] || {}, defaultGuildState());
   // Restaura a lista da nuvem se a local sumiu (deploy do Railway apagou o state)
-  const nuvem = adminsDaNuvem[guildId];
   const local = state.guilds[guildId].adminsPermitidos;
-  if (Array.isArray(nuvem) && nuvem.length && (!Array.isArray(local) || local.length === 0)) {
-    state.guilds[guildId].adminsPermitidos = [...nuvem];
+  if (adminsGlobais.size && (!Array.isArray(local) || local.length === 0)) {
+    state.guilds[guildId].adminsPermitidos = [...adminsGlobais];
   }
   normalizarEstadoAutomacoes(state.guilds[guildId]);
   if (state.guilds[guildId].customization.feedbackDm.message === 'Obrigado pela compra! Clique abaixo para avaliar seu atendimento.') {
