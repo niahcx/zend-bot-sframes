@@ -71,6 +71,7 @@ export function defaultGuildState() {
     currency: 'BRL',
     locale: 'pt_BR',
     products: [],
+    adminsPermitidos: [],
     auth: authPadrao(),
     channels: {
       orderLogs: null,

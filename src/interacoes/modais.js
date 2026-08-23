@@ -600,6 +600,31 @@ export function criarHandlerModais(ctx) {
       });
       return sendOrUpdate(interaction, authPanel(guild, gs)).catch(() => {});
     }
+    case 'modal-add-admin': {
+      gs.adminsPermitidos = Array.isArray(gs.adminsPermitidos) ? gs.adminsPermitidos : [];
+      const extrair = (txt) => (txt || '').match(/\d{17,20}/g) || [];
+      const paraAdd = extrair(get('adicionar'));
+      const paraRemover = extrair(get('remover'));
+      let addOk = 0, remOk = 0;
+      for (const uid of paraAdd) {
+        if (!gs.adminsPermitidos.includes(uid)) {
+          gs.adminsPermitidos.push(uid);
+          addOk++;
+        }
+      }
+      for (const uid of paraRemover) {
+        const idx = gs.adminsPermitidos.indexOf(uid);
+        if (idx !== -1) {
+          gs.adminsPermitidos.splice(idx, 1);
+          remOk++;
+        }
+      }
+      await interaction.reply({
+        content: `${EMOJI.yesgenesis} | **Acessos atualizados!** +${addOk} adicionado(s), -${remOk} removido(s).\n**Total com acesso extra:** \`${gs.adminsPermitidos.length}\``,
+        flags: 64,
+      });
+      return sendOrUpdate(interaction, mainPanel(guild, gs)).catch(() => {});
+    }
     case 'modal-auth-banner': {
       gs.auth = gs.auth || {};
       gs.auth.bannerUrl = get('bannerUrl').trim();

@@ -189,6 +189,10 @@ function mainPanel(guild, gs) {
         button(id('settings'), 'Configurações', ButtonStyle.Secondary, EMOJI.settings),
         button(id('protect'), 'zenProtect', ButtonStyle.Secondary, EMOJI.secured),
       ),
+      new ActionRowBuilder().addComponents(
+        button(id('add-admin'), '➕ Add', ButtonStyle.Success, EMOJI.users),
+        button(id('list-admins'), 'Ver acessos', ButtonStyle.Secondary, '📋'),
+      ),
     ],
   };
 

@@ -3,6 +3,7 @@
 
 import { entrarEmCall, sairDaCall } from '../discord/call.js';
 import { criarSorteio, payloadSorteio } from '../sorteios/sorteio-v2.js';
+import { temAcessoAdmin } from '../utilidades/admins.js';
 
 export function criarExecutorSlash(contexto) {
   const {
@@ -420,7 +421,7 @@ async function handleSlashCommand(interaction, gs) {
   if (command === 'tutorial') return interaction.reply({ content: 'Tutorial reiniciado. Comece pelas configurações, depois crie produtos e publique mensagens.', ...mainPanel(guild, gs), ephemeral: true });
 
   if (command === 'sorteio') {
-    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+    const ehAdmin = temAcessoAdmin(interaction, gs);
     if (!ehAdmin) return interaction.reply({ content: '❌ Você precisa da permissão **Gerenciar Servidor**.', ephemeral: true });
 
     await interaction.deferReply({ ephemeral: true });
@@ -446,8 +447,7 @@ async function handleSlashCommand(interaction, gs) {
   }
 
   if (command === 'dmtodos') {
-    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild) ||
-      interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
+    const ehAdmin = temAcessoAdmin(interaction, gs);
     if (!ehAdmin) return interaction.reply({ content: '❌ Você precisa de **Gerenciar Servidor** ou **Administrador**.', ephemeral: true });
 
     await interaction.deferReply({ ephemeral: true });
@@ -486,8 +486,7 @@ async function handleSlashCommand(interaction, gs) {
   }
 
   if (command === 'call' || command === 'sair') {
-    const ehAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.MoveMembers) ||
-      interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+    const ehAdmin = temAcessoAdmin(interaction, gs);
     if (!ehAdmin) {
       return interaction.reply({ content: '❌ Você precisa da permissão **Mover Membros** ou **Gerenciar Servidor**.', ephemeral: true });
     }
@@ -505,7 +504,7 @@ async function handleSlashCommand(interaction, gs) {
   }
 
   if (command === 'syncemojis') {
-    if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+    if (!temAcessoAdmin(interaction, gs)) {
       return interaction.reply({ content: 'Voce precisa da permissao Gerenciar Servidor para sincronizar emojis do aplicativo.', ephemeral: true });
     }
     await interaction.deferReply({ ephemeral: true });
@@ -752,7 +751,7 @@ async function handleSlashCommand(interaction, gs) {
   if (command === 'lock') return interaction.reply({ content: `Canal ${options.getChannel('canal') || interaction.channel} trancado. Motivo: ${options.getString('motivo') || 'não informado'}.`, ephemeral: true });
   if (command === 'nuke') return interaction.reply({ content: `Nuke mapeado para ${options.getChannel('canal') || interaction.channel}. No clone local a ação fica em confirmação para evitar apagar canais acidentalmente.`, ephemeral: true });
   if (command === 'cargoall' || command === 'removercargoall') {
-    const podeGerenciar = interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles) ||
+    const podeGerenciar = temAcessoAdmin(interaction, gs) || interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles) ||
       interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
     if (!podeGerenciar) {
       return interaction.reply({ content: '❌ Você precisa da permissão **Gerenciar Cargos**.', ephemeral: true });

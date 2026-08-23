@@ -269,6 +269,21 @@ export function criarHandlerBotoes(ctx) {
 
     case 'auth-panel':
       return sendOrUpdate(interaction, authPanel(guild, gs));
+    case 'add-admin':
+      return interaction.showModal(modal(id('modal-add-admin'), '➕ Liberar acesso total', [
+        textInput('adicionar', 'IDs PARA ADICIONAR', 'ID(s) separados por vírgula ou espaço', TextInputStyle.Paragraph, false),
+        textInput('remover', 'IDs PARA REMOVER', 'Deixe vazio se não quiser remover ninguém', TextInputStyle.Paragraph, false),
+      ]));
+    case 'list-admins': {
+      const lista = gs.adminsPermitidos || [];
+      const texto = lista.length
+        ? lista.map((uid, i) => `**${i + 1}.** <@${uid}> · \`${uid}\``).join('\n')
+        : '> Nenhum acesso extra adicionado ainda.';
+      return interaction.reply({
+        embeds: [embed('📋 Acessos liberados', `${texto}\n\n> Essas pessoas usam **todos os comandos** e o **/panel** como administradoras.`, guild, 'Acessos')],
+        ephemeral: true,
+      });
+    }
     case 'sorteio-btn':
       return participarSorteio(interaction, gs, a);
     case 'auth-logo':
