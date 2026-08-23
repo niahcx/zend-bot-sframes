@@ -413,6 +413,14 @@ async function handleSlashCommand(interaction, gs) {
   const guild = interaction.guild;
   const options = interaction.options;
 
+  if (command === 'panel' || command === 'tutorial') {
+    if (!temAcessoAdmin(interaction, gs)) {
+      return interaction.reply({
+        content: '❌ Você não tem acesso ao painel.\n> Peça ao dono para te liberar em **/panel → ➕ Add** (o dono precisa do seu **ID de usuário**).',
+        ephemeral: true,
+      });
+    }
+  }
   if (command === 'panel') return interaction.reply({ ...mainPanel(guild, gs), ephemeral: true });
   if (command === 'ajuda') return interaction.reply({ ...helpPanel(guild), ephemeral: true });
   if (command === 'zenwallet') return interaction.reply({ ...zenWalletPanel(guild, gs), ephemeral: true });

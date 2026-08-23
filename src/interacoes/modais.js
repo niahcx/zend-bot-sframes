@@ -2,6 +2,7 @@ import { tratarModalAutomacoes } from '../automacoes/interacoes-automacoes.js';
 import { tratarModalOutrasAutomacoes } from '../automacoes/interacoes-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
 import { salvarAuthConfigNoFirebase, listarVerificadosFirebase, salvarTokensFirebase } from '../infraestrutura/firebase-auth.js';
+import { salvarAdminsNuvem } from '../database/estado.js';
 import { TOKEN } from '../configuracoes/ambiente.js';
 
 export function criarHandlerModais(ctx) {
@@ -621,9 +622,10 @@ export function criarHandlerModais(ctx) {
         }
       }
       await interaction.reply({
-        content: `${EMOJI.yesgenesis} | **Acessos atualizados!** +${addOk} adicionado(s), -${remOk} removido(s).\n**Total com acesso extra:** \`${gs.adminsPermitidos.length}\``,
+        content: `${EMOJI.yesgenesis} | **Acessos atualizados!** +${addOk} adicionado(s), -${remOk} removido(s).\n**Total com acesso extra:** \`${gs.adminsPermitidos.length}\`\n-# Essas pessoas já podem usar o **/panel** e os comandos admin na hora.`,
         flags: 64,
       });
+      await salvarAdminsNuvem(interaction.guild.id, gs.adminsPermitidos).catch(() => {});
       return sendOrUpdate(interaction, mainPanel(guild, gs)).catch(() => {});
     }
     case 'modal-auth-banner': {
