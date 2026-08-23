@@ -193,6 +193,9 @@ function mainPanel(guild, gs) {
         button(id('add-admin'), '➕ Add', ButtonStyle.Success, EMOJI.users),
         button(id('list-admins'), 'Ver acessos', ButtonStyle.Secondary, '📋'),
       ),
+      new ActionRowBuilder().addComponents(
+        button(id('selfban-panel'), 'Anti-SelfBot', ButtonStyle.Danger, '🛡️'),
+      ),
     ],
   };
 

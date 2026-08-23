@@ -286,6 +286,26 @@ export function criarHandlerBotoes(ctx) {
     }
     case 'sorteio-btn':
       return participarSorteio(interaction, gs, a);
+    case 'selfban-panel':
+      { const { selfbanPanel } = await import('../paineis/painel-selfban.js');
+        return sendOrUpdate(interaction, selfbanPanel(guild, gs)); }
+    case 'selfban-toggle': {
+      gs.selfban = gs.selfban || {};
+      gs.selfban.ativo = !gs.selfban.ativo;
+      const { selfbanPanel: sp } = await import('../paineis/painel-selfban.js');
+      if (gs.selfban.ativo && (!gs.selfban.canalMonitor || !gs.selfban.canalLog)) {
+        gs.selfban.ativo = false;
+        return interaction.reply({ content: '❌ Configure o **canal monitorado** e o **canal de logs** antes de ativar.', ephemeral: true });
+      }
+      return interaction.reply({
+        content: `${gs.selfban.ativo ? '🟢 **Anti-SelfBot ATIVADO!** Quem postar no canal armadilha é banido na hora.' : '🔴 Anti-SelfBot desativado.'}`,
+        ephemeral: true,
+      });
+    }
+    case 'selfban-reset':
+      gs.selfban = gs.selfban || {};
+      gs.selfban.bans = 0;
+      return interaction.reply({ content: '♻️ Contador de bans zerado!', ephemeral: true });
     case 'auth-logo':
       return interaction.showModal(modal(id('modal-auth-logo'), 'Foto da página de Auth', [
         textInput('logoUrl', 'URL DA LOGO', 'Cole o link da imagem (ex: https://i.imgur.com/...)', TextInputStyle.Short, false),

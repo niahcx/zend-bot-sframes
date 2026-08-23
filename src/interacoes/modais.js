@@ -46,6 +46,7 @@ export function criarHandlerModais(ctx) {
     isCartAdmin,
     isCartOwner,
     linkButton,
+    mainPanel,
     manualPaymentPanel,
     modal,
     money,

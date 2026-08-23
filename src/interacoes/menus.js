@@ -486,6 +486,14 @@ async function handleChannelSelect(interaction, gs) {
     await interaction.update({ content: `${EMOJI.yesgenesis} | Canal configurado: <#${channelId}>.`, components: [], embeds: [] });
     return;
   }
+  if (action === 'selfban-canal-monitor' || action === 'selfban-canal-log') {
+    gs.selfban = gs.selfban || {};
+    gs.selfban[action === 'selfban-canal-monitor' ? 'canalMonitor' : 'canalLog'] = channelId;
+    const { selfbanPanel } = await import('../paineis/painel-selfban.js');
+    await interaction.update({ content: `${EMOJI.yesgenesis} | Canal definido: <#${channelId}>.`, embeds: [], components: [] });
+    const canalAlvo = await interaction.channel?.send?.(selfbanPanel(interaction.guild, gs)).catch(() => null);
+    return;
+  }
   if (action === 'channel-set') {
     const kind = userDraft(interaction.user.id).channelKind;
     if (!kind || !(kind in gs.channels)) {

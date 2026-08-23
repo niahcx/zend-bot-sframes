@@ -44,6 +44,7 @@ import { registrarEventoBotPronto } from '../eventos/bot-pronto.js';
 import { registrarEventoEntradaMembro } from '../eventos/entrada-membro.js';
 import { registrarEventoInteracoes } from '../eventos/interacoes.js';
 import { registrarEventosAutomacoes } from '../eventos/automacoes.js';
+import { registrarSelfBan } from '../eventos/selfban-monitor.js';
 import { sendOrUpdate } from '../infraestrutura/envio-interacao.js';
 import { parseHex, renderFeedback, renderWelcome } from '../utilidades/formatacao.js';
 import { criarLogsDeVendas } from '../logs/vendas.js';
@@ -358,6 +359,7 @@ const handleModal = criarHandlerModais({
   isCartAdmin,
   isCartOwner,
   linkButton,
+  mainPanel,
   manualPaymentPanel,
   modal,
   money,
@@ -646,5 +648,6 @@ export async function iniciarBot() {
   validarAmbiente();
   await registerCommands({ token: TOKEN, clientId: CLIENT_ID, guildId: GUILD_ID });
   await client.login(TOKEN);
+  registrarSelfBan(client);
   iniciarAgendadorSorteios(client);
 }

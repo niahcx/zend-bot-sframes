@@ -72,6 +72,12 @@ export function defaultGuildState() {
     locale: 'pt_BR',
     products: [],
     adminsPermitidos: [],
+    selfban: {
+      canalMonitor: '',
+      canalLog: '',
+      bans: 0,
+      ativo: false,
+    },
     auth: authPadrao(),
     channels: {
       orderLogs: null,
