@@ -195,6 +195,7 @@ function mainPanel(guild, gs) {
       ),
       new ActionRowBuilder().addComponents(
         button(id('selfban-panel'), 'Anti-SelfBot', ButtonStyle.Danger, '🛡️'),
+        button(id('logs-membros'), 'Logs Entrada/Saída', ButtonStyle.Primary, '📋'),
       ),
     ],
   };
@@ -2805,6 +2806,54 @@ function ticketHelpEmbed(guild) {
   );
 }
 
+function logsMembrosPanel(guild, gs) {
+  const ml = gs.memberLogs || {};
+  const e = embed(
+    'SFrames\n📋 Logs de Entrada/Saída',
+    [
+      '> Registra **quem entrou** e **quem saiu** do servidor, com mensagem personalizável.',
+      '> **Nunca menciona a pessoa** — usa apenas o nome (sem ping).',
+      '> 💡 Use canais **visíveis só para a staff** — assim só os admins veem os logs.',
+      '',
+      `**🟢 Status:** \`${ml.enabled ? 'Ativo' : 'Inativo'}\``,
+      `**Modo:** \`${ml.modoEmbed ? '📋 Embed' : '💬 Mensagem'}\``,
+      `**📥 Canal de entradas:** ${ml.canalEntrada ? `<#${ml.canalEntrada}>` : '`Não configurado`'}`,
+      `**📤 Canal de saídas:** ${ml.canalSaida ? `<#${ml.canalSaida}>` : '`Não configurado`'}`,
+      '',
+      '**Mensagem de entrada:**',
+      `\`${ml.mensagemEntrada}\``,
+      '**Mensagem de saída:**',
+      `\`${ml.mensagemSaida}\``,
+      '',
+      '**Placeholders (sem menção):**',
+      '`{username}` — Nome de usuário · `{displayname}` — Nome de exibição',
+      '`{id}` — ID da conta · `{server}` — Nome do servidor',
+      '`{membercount}` — Total de membros · `{createdat}` — Criação da conta',
+      '`{accountage}` — Dias de conta',
+    ].join('\n'),
+    guild,
+    'Logs de Membros',
+  );
+  if (ml.modoEmbed && ml.cor) e.setColor(parseHex(ml.cor));
+  return {
+    embeds: [e],
+    components: [
+      new ActionRowBuilder().addComponents(
+        button(id('logs-msg-entrada'), 'Msg de ENTRADA', ButtonStyle.Primary, '📥'),
+        button(id('logs-msg-saida'), 'Msg de SAÍDA', ButtonStyle.Primary, '📤'),
+        button(id('logs-modo'), ml.modoEmbed ? 'Usar Mensagem' : 'Usar Embed', ButtonStyle.Secondary, EMOJI.visible),
+      ),
+      new ActionRowBuilder().addComponents(
+        button(id('logs-preview'), '👁️ Preview', ButtonStyle.Success),
+        button(id('logs-toggle'), ml.enabled ? '🔴 Desativar' : '🟢 Ativar', ml.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+      ),
+      channelSelectRow(id('logs-canal-entrada')),
+      channelSelectRow(id('logs-canal-saida')),
+      new ActionRowBuilder().addComponents(button(id('home'), 'Voltar ao início', ButtonStyle.Secondary, EMOJI.left)),
+    ],
+  };
+}
+
 function channelSelectRow(customId) {
   return new ActionRowBuilder().addComponents(
     new ChannelSelectMenuBuilder()
@@ -2923,6 +2972,7 @@ function parsePrice(value) {
 
   return {
     mainPanel,
+    logsMembrosPanel,
     productListPanel,
     storePanel,
     authPanel,

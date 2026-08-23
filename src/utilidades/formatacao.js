@@ -21,3 +21,16 @@ export function renderFeedback(template, user) {
     .replaceAll('{saudacao}', greeting)
     .replaceAll('{usuario}', `<@${user.id}>`);
 }
+
+// Logs de entrada/saída: SEM menção — nunca gera ping em ninguém.
+export function renderMemberLogs(template, member) {
+  const user = member.user || {};
+  return String(template || '')
+    .replaceAll('{username}', user.username || 'Desconhecido')
+    .replaceAll('{displayname}', member.displayName || user.username || 'Desconhecido')
+    .replaceAll('{id}', member.id || '')
+    .replaceAll('{server}', member.guild?.name || '')
+    .replaceAll('{membercount}', String(member.guild?.memberCount ?? ''))
+    .replaceAll('{createdat}', `<t:${Math.floor((user.createdTimestamp || Date.now()) / 1000)}:R>`)
+    .replaceAll('{accountage}', String(Math.floor((Date.now() - (user.createdTimestamp || Date.now())) / 86400000)));
+}

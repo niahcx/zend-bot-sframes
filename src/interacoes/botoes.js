@@ -72,6 +72,7 @@ export function criarHandlerBotoes(ctx) {
     isCartAdmin,
     isCartOwner,
     linkButton,
+    logsMembrosPanel,
     mainPanel,
     manualPaymentPanel,
     modal,
@@ -95,6 +96,7 @@ export function criarHandlerBotoes(ctx) {
     protectWhitelistPanel,
     refreshCartMessage,
     renderWelcome,
+    renderMemberLogs,
     repostPanel,
     rolesConfigPanel,
     rolesFieldPanel,
@@ -290,7 +292,54 @@ export function criarHandlerBotoes(ctx) {
     case 'selfban-panel':
       { const { selfbanPanel } = await import('../paineis/painel-selfban.js');
         return sendOrUpdate(interaction, selfbanPanel(guild, gs)); }
-    case 'selfban-toggle': {
+    case 'logs-membros':
+      return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
+    case 'logs-membros-toggle':
+    case 'logs-toggle': {
+      gs.memberLogs = gs.memberLogs || {};
+      if (!gs.memberLogs.enabled && (!gs.memberLogs.canalEntrada || !gs.memberLogs.canalSaida)) {
+        return interaction.reply({ content: '❌ Configure o **canal de entradas** e o **canal de saídas** antes de ativar.', ephemeral: true });
+      }
+      gs.memberLogs.enabled = !gs.memberLogs.enabled;
+      return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
+    }
+    case 'logs-modo':
+      gs.memberLogs = gs.memberLogs || {};
+      gs.memberLogs.modoEmbed = !gs.memberLogs.modoEmbed;
+      return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
+    case 'logs-msg-entrada':
+      gs.memberLogs = gs.memberLogs || {};
+      return interaction.showModal(modal(id('modal-logs-msg-entrada'), 'Mensagem de ENTRADA', [
+        textInput('message', 'MENSAGEM (sem menção)*', 'Placeholders: {username} {displayname} {id} {server} {membercount}', TextInputStyle.Paragraph, true, gs.memberLogs.mensagemEntrada),
+      ]));
+    case 'logs-msg-saida':
+      gs.memberLogs = gs.memberLogs || {};
+      return interaction.showModal(modal(id('modal-logs-msg-saida'), 'Mensagem de SAÍDA', [
+        textInput('message', 'MENSAGEM (sem menção)*', 'Placeholders: {username} {displayname} {id} {server} {membercount}', TextInputStyle.Paragraph, true, gs.memberLogs.mensagemSaida),
+      ]));
+    case 'logs-preview': {
+      gs.memberLogs = gs.memberLogs || {};
+      const mockMember = {
+        user: interaction.user,
+        id: interaction.user.id,
+        displayName: interaction.member?.displayName || interaction.user.username,
+        guild: interaction.guild,
+      };
+      const render = (tpl) => renderMemberLogs(tpl, mockMember);
+      if (gs.memberLogs.modoEmbed) {
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder().setDescription(render(gs.memberLogs.mensagemEntrada)).setColor(parseHex(gs.memberLogs.cor)).setAuthor({ name: '📥 Preview · Entrada' }),
+            new EmbedBuilder().setDescription(render(gs.memberLogs.mensagemSaida)).setColor(parseHex(gs.memberLogs.cor)).setAuthor({ name: '📤 Preview · Saída' }),
+          ],
+          ephemeral: true,
+        });
+      }
+      return interaction.reply({
+        content: `**Preview · Entrada:**\n${render(gs.memberLogs.mensagemEntrada)}\n\n**Preview · Saída:**\n${render(gs.memberLogs.mensagemSaida)}`,
+        ephemeral: true,
+      });
+    }    case 'selfban-toggle': {
       gs.selfban = gs.selfban || {};
       gs.selfban.ativo = !gs.selfban.ativo;
       const { selfbanPanel: sp } = await import('../paineis/painel-selfban.js');

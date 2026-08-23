@@ -143,6 +143,15 @@ export function defaultGuildState() {
       bans: 0,
       ativo: false,
     },
+    memberLogs: {
+      enabled: false,
+      canalEntrada: '',
+      canalSaida: '',
+      mensagemEntrada: '📥 **{username}** entrou no servidor! Agora temos **{membercount}** membros.',
+      mensagemSaida: '📤 **{username}** saiu do servidor. Agora temos **{membercount}** membros.',
+      cor: '#5865F2',
+      modoEmbed: true,
+    },
     auth: authPadrao(),
     channels: {
       orderLogs: null,

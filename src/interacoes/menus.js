@@ -41,6 +41,7 @@ export function criarHandlersMenus(ctx) {
     isCartAdmin,
     isCartOwner,
     linkButton,
+    logsMembrosPanel,
     modal,
     money,
     oauthConfigPanel,
@@ -493,6 +494,11 @@ async function handleChannelSelect(interaction, gs) {
     await interaction.update({ content: `${EMOJI.yesgenesis} | Canal definido: <#${channelId}>.`, embeds: [], components: [] });
     const canalAlvo = await interaction.channel?.send?.(selfbanPanel(interaction.guild, gs)).catch(() => null);
     return;
+  }
+  if (action === 'logs-canal-entrada' || action === 'logs-canal-saida') {
+    gs.memberLogs = gs.memberLogs || {};
+    gs.memberLogs[action === 'logs-canal-entrada' ? 'canalEntrada' : 'canalSaida'] = channelId;
+    return interaction.update({ ...logsMembrosPanel(interaction.guild, gs), content: `${EMOJI.yesgenesis} | Canal definido: <#${channelId}>.` });
   }
   if (action === 'channel-set') {
     const kind = userDraft(interaction.user.id).channelKind;

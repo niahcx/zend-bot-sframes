@@ -47,6 +47,7 @@ export function criarHandlerModais(ctx) {
     isCartAdmin,
     isCartOwner,
     linkButton,
+    logsMembrosPanel,
     mainPanel,
     manualPaymentPanel,
     modal,
@@ -298,6 +299,14 @@ export function criarHandlerModais(ctx) {
     case 'modal-welcome-title':
       gs.welcome.title = get('title');
       return sendOrUpdate(interaction, welcomePanel(guild, gs));
+    case 'modal-logs-msg-entrada':
+      gs.memberLogs = gs.memberLogs || {};
+      gs.memberLogs.mensagemEntrada = get('message');
+      return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
+    case 'modal-logs-msg-saida':
+      gs.memberLogs = gs.memberLogs || {};
+      gs.memberLogs.mensagemSaida = get('message');
+      return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
     case 'modal-repost-time':
       gs.automations.repost.time = get('time');
       return sendOrUpdate(interaction, repostPanel(guild, gs));

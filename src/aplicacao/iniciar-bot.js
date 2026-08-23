@@ -45,8 +45,9 @@ import { registrarEventoEntradaMembro } from '../eventos/entrada-membro.js';
 import { registrarEventoInteracoes } from '../eventos/interacoes.js';
 import { registrarEventosAutomacoes } from '../eventos/automacoes.js';
 import { registrarSelfBan } from '../eventos/selfban-monitor.js';
+import { registrarLogsMembros } from '../eventos/logs-membros.js';
 import { sendOrUpdate } from '../infraestrutura/envio-interacao.js';
-import { parseHex, renderFeedback, renderWelcome } from '../utilidades/formatacao.js';
+import { parseHex, renderFeedback, renderMemberLogs, renderWelcome } from '../utilidades/formatacao.js';
 import { criarLogsDeVendas } from '../logs/vendas.js';
 import { criarSistemaCarrinho } from '../loja/carrinho.js';
 import { criarHandlerBotoes } from '../interacoes/botoes.js';
@@ -147,6 +148,7 @@ const paineisZend = criarPaineisZend({
 
 const {
   mainPanel,
+  logsMembrosPanel,
   productListPanel,
   storePanel,
   authPanel,
@@ -359,6 +361,7 @@ const handleModal = criarHandlerModais({
   isCartAdmin,
   isCartOwner,
   linkButton,
+  logsMembrosPanel,
   mainPanel,
   manualPaymentPanel,
   modal,
@@ -432,6 +435,7 @@ const { handleSelect, handleChannelSelect } = criarHandlersMenus({
   isCartAdmin,
   isCartOwner,
   linkButton,
+  logsMembrosPanel,
   modal,
   oauthConfigPanel,
   positionPanel,
@@ -523,6 +527,7 @@ const handleButton = criarHandlerBotoes({
   isCartAdmin,
   isCartOwner,
   linkButton,
+  logsMembrosPanel,
   mainPanel,
   manualPaymentPanel,
   modal,
@@ -545,6 +550,7 @@ const handleButton = criarHandlerBotoes({
   protectSelfBotPanel,
   protectWhitelistPanel,
   refreshCartMessage,
+  renderMemberLogs,
   renderWelcome,
   repostPanel,
   rolesConfigPanel,
@@ -626,6 +632,7 @@ registrarEventoInteracoes(client, {
 export const paineisParaTeste = {
   criarEstado: defaultGuildState,
   principal: mainPanel,
+  logsMembros: logsMembrosPanel,
   loja: storePanel,
   tickets: ticketPanel,
   funcoesTicket: ticketFunctionsPanel,
@@ -649,5 +656,6 @@ export async function iniciarBot() {
   await registerCommands({ token: TOKEN, clientId: CLIENT_ID, guildId: GUILD_ID });
   await client.login(TOKEN);
   registrarSelfBan(client);
+  registrarLogsMembros(client);
   iniciarAgendadorSorteios(client);
 }
