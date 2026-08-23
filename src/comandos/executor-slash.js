@@ -415,8 +415,13 @@ async function handleSlashCommand(interaction, gs) {
 
   if (command === 'panel' || command === 'tutorial') {
     if (!temAcessoAdmin(interaction, gs)) {
+      console.log(`[panel] Acesso negado: ${interaction.user.tag} (${interaction.user.id})`);
       return interaction.reply({
-        content: '❌ Você não tem acesso ao painel.\n> Peça ao dono para te liberar em **/panel → ➕ Add** (o dono precisa do seu **ID de usuário**).',
+        content: [
+          '❌ Você não tem acesso ao painel.',
+          `> **Seu ID:** \`${interaction.user.id}\``,
+          '> Peça ao dono para liberar esse ID exato em **/panel → ➕ Add**.',
+        ].join('\n'),
         ephemeral: true,
       });
     }
