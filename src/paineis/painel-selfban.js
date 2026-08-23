@@ -1,4 +1,4 @@
-// Painel Anti-SelfBot: monitora um canal, bane quem postar nele e registra logs.
+// Painel Anti-SelfBot: monitora um canal/call, dá castigo de 3h a quem enviar algo e registra logs.
 
 import { localAsset } from '../configuracoes/assets-zend.js';
 import { embed, button, id } from '../discord/componentes.js';
@@ -11,18 +11,18 @@ export function selfbanPanel(guild, gs) {
   const e = embed(
     'SFrames\n🛡️ Anti-SelfBot',
     [
-      '> Monitora um canal específico. **Quem postar nele é banido na hora**',
+      '> Monitora um canal ou call. **Quem enviar mensagem/foto leva castigo de 3 horas**',
       '> (selfbots costumam anunciar/promover por aí — este canal vira uma armadilha).',
       '',
       `**🟢 Status:** \`${sb.ativo ? 'Ativo' : 'Inativo'}\``,
       `**🎯 Canal monitorado:** ${sb.canalMonitor ? `<#${sb.canalMonitor}>` : '`Não configurado`'}`,
       `**📜 Canal de logs:** ${sb.canalLog ? `<#${sb.canalLog}>` : '`Não configurado`'}`,
-      `**🔨 Selfbots banidos:** \`${sb.bans || 0}\``,
+      `**⏱️ Castigos aplicados:** \`${sb.bans || 0}\``,
       '',
       '**Como funciona:**',
-      '**1.** Defina o canal que vai vigiar (armadilha)',
-      '**2.** Defina onde os banimentos serão registrados',
-      '**3.** Ative — o resto é automático!',
+      '**1.** Defina o canal/call que vai vigiar (armadilha)',
+      '**2.** Defina onde os castigos serão registrados',
+      '**3.** Ative — o bot avisa no canal e pune quem desobedecer!',
     ].join('\n'),
     guild,
     'Anti-SelfBot',
@@ -35,13 +35,13 @@ export function selfbanPanel(guild, gs) {
         ChannelSelectMenuBuilder &&
           new ChannelSelectMenuBuilder()
             .setCustomId(id('selfban-canal-monitor'))
-            .setPlaceholder('🎯 Canal armadilha (quem postar é banido)')
-            .setChannelTypes(ChannelType.GuildText),
+            .setPlaceholder('🎯 Canal/call armadilha (quem enviar algo leva 3h)')
+            .setChannelTypes(ChannelType.GuildText, ChannelType.GuildVoice),
       ),
       new ActionRowBuilder().addComponents(
         new ChannelSelectMenuBuilder()
           .setCustomId(id('selfban-canal-log'))
-          .setPlaceholder('📜 Canal de logs dos banimentos')
+            .setPlaceholder('📜 Canal de logs dos castigos')
           .setChannelTypes(ChannelType.GuildText),
       ),
       new ActionRowBuilder().addComponents(

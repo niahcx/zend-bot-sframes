@@ -5,6 +5,7 @@ import { painelLimpezaAutomatica } from '../automacoes/paineis-limpeza.js';
 import { painelInviteTracker, painelLockUnlock, painelMonitorFeedbacks, painelRestock } from '../automacoes/paineis-outras-automacoes.js';
 import { notificarRestock } from '../automacoes/servico-automacoes.js';
 import { salvarAuthConfigNoFirebase, listarVerificadosFirebase } from '../infraestrutura/firebase-auth.js';
+import { enviarAvisoCanalArmadilha } from '../eventos/selfban-monitor.js';
 import { authSetupPayload } from '../paineis/auth-setup.js';
 import { participar as participarSorteio } from '../sorteios/sorteio-v2.js';
 import { ChannelSelectMenuBuilder, ChannelType, MessageFlags } from 'discord.js';
@@ -297,8 +298,12 @@ export function criarHandlerBotoes(ctx) {
         gs.selfban.ativo = false;
         return interaction.reply({ content: '❌ Configure o **canal monitorado** e o **canal de logs** antes de ativar.', ephemeral: true });
       }
+      if (gs.selfban.ativo) {
+        const canalArmadilha = await interaction.guild.channels.fetch(gs.selfban.canalMonitor).catch(() => null);
+        await enviarAvisoCanalArmadilha(canalArmadilha);
+      }
       return interaction.reply({
-        content: `${gs.selfban.ativo ? '🟢 **Anti-SelfBot ATIVADO!** Quem postar no canal armadilha é banido na hora.' : '🔴 Anti-SelfBot desativado.'}`,
+        content: `${gs.selfban.ativo ? '🟢 **Anti-SelfBot ATIVADO!** Quem enviar mensagem/foto no canal ou na call armadilha leva **castigo de 3 horas** na hora.' : '🔴 Anti-SelfBot desativado.'}`,
         ephemeral: true,
       });
     }

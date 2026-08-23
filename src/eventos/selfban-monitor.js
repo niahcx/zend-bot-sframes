@@ -1,10 +1,38 @@
-// Monitor Anti-SelfBot: quem postar no canal armadilha é banido na hora,
-// com mensagens dos últimos 7 dias apagadas + log detalhado.
+// Monitor Anti-SelfBot: quem enviar mensagem/foto no canal armadilha (texto ou call)
+// leva castigo de 3 horas na hora, com log detalhado. O bot avisa no canal para
+// ninguém enviar nada.
 
-import { ContainerBuilder, SectionBuilder, TextDisplayBuilder, ThumbnailBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { state, guildState, saveState } from '../database/estado.js';
 
+const CASTIGO_MS = 3 * 60 * 60 * 1000; // 3 horas
+const avisoEnviadoEm = new Map(); // guildId -> timestamp do último aviso (anti-spam)
+
+export function avisoArmadilha() {
+  return {
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0xed4245)
+        .setTitle('⚠️ ATENÇÃO — LEIA ANTES DE FAZER QUALQUER COISA')
+        .setDescription(
+          [
+            '**🚫 NÃO envie mensagens, fotos, vídeos ou links aqui!**',
+            '',
+            '⏱️ Quem enviar **qualquer coisa** neste canal/call leva **castigo de 3 horas** na hora.',
+            '🛡️ Este canal é monitorado pelo **Anti-SelfBot**.',
+          ].join('\n'),
+        ),
+    ],
+  };
+}
+
+export async function enviarAvisoCanalArmadilha(canal) {
+  if (!canal?.isTextBased?.()) return;
+  await canal.send(avisoArmadilha()).catch(() => {});
+}
+
 export function registrarSelfBan(client) {
+  // ── Armadilha: mensagem/foto no canal monitorado = castigo de 3h ──
   client.on('messageCreate', async (message) => {
     try {
       if (!message.guild || message.author.bot) return;
@@ -14,7 +42,7 @@ export function registrarSelfBan(client) {
       if (!sb?.ativo || !sb.canalMonitor) return;
       if (message.channel.id !== sb.canalMonitor) return;
 
-      // Não bana admins do painel nem o dono
+      // Staff do servidor é ignorado
       const member = await message.guild.members.fetch(message.author.id).catch(() => null);
       if (!member) return;
       if (member.permissions.has('Administrator') || member.permissions.has('ManageGuild')) {
@@ -22,59 +50,68 @@ export function registrarSelfBan(client) {
         return;
       }
 
-      // Ban com deleção de 7 dias de mensagens
-      await message.guild.members.ban(message.author.id, {
-        deleteMessageSeconds: 604800,
-        reason: 'SFrames · SelfBot detectado no canal monitorado',
-      });
+      // Castigo de 3h (timeout de comunicação)
+      try {
+        await member.timeout(CASTIGO_MS, 'SFrames · Enviou mensagem no canal armadilha (Anti-SelfBot)');
+      } catch (err) {
+        await saveState().catch(() => {});
+        if (sb.canalLog) {
+          const canalLog = await client.channels.fetch(sb.canalLog).catch(() => null);
+          await canalLog
+            ?.send(`❌ **Não consegui castigar** <@${message.author.id}> — preciso da permissão **Moderar membros** e do cargo acima do dele. (\`${err.message}\`)`)
+            .catch(() => {});
+        }
+        return;
+      }
       sb.bans = (sb.bans || 0) + 1;
       await saveState();
+
+      // Apaga a mensagem infratora
+      await message.delete().catch(() => {});
 
       // Log
       if (sb.canalLog) {
         const canalLog = await client.channels.fetch(sb.canalLog).catch(() => null);
         if (canalLog) {
-          const container = new ContainerBuilder()
-            .setAccentColor(0xed4245)
-            .addSectionComponents(
-              new SectionBuilder()
-                .setThumbnailAccessory(
-                  new ThumbnailBuilder().setURL(
-                    message.author.displayAvatarURL({ extension: 'png', size: 128 }),
-                  ),
-                )
-                .addTextDisplayComponents(
-                  new TextDisplayBuilder().setContent(
-                    [
-                      '## 🔨 SelfBot Banido!',
-                      `**👤 Usuário:** \`${message.author.tag}\``,
-                      `**🆔 ID:** \`${message.author.id}\``,
-                      `**📊 Total de bans:** \`${sb.bans}\``,
-                    ].join('\n'),
-                  ),
-                ),
-            )
-            .addSeparatorComponents(
-              new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                `**💬 Mensagem enviada:**\n${(message.content || '*(sem texto)*').slice(0, 1000)}`,
-              ),
+          const e = new EmbedBuilder()
+            .setColor(0xed4245)
+            .setTitle('⏱️ Castigo aplicado — Anti-SelfBot')
+            .setThumbnail(message.author.displayAvatarURL({ extension: 'png', size: 128 }))
+            .addFields(
+              { name: '👤 Usuário', value: `\`${message.author.tag}\` (\`${message.author.id}\`)`, inline: false },
+              { name: '⏱️ Castigo', value: '`3 horas` sem falar', inline: true },
+              { name: '📊 Total de castigos', value: `\`${sb.bans}\``, inline: true },
+              { name: '📍 Onde', value: `<#${message.channelId}>`, inline: false },
+              { name: '💬 Mensagem enviada', value: (message.content || '*(sem texto — foto/anexo?)*').slice(0, 1000) },
             );
-
-          const anexos = [...message.attachments.values()].slice(0, 3);
-          if (anexos.length) {
-            container.addMediaGalleryComponents({
-              items: anexos.map((a) => ({ media: { url: a.url } })),
-            });
+          if (message.attachments.size) {
+            e.setImage(message.attachments.first().url);
           }
-
-          await canalLog.send({ flags: MessageFlags.IsComponentsV2, components: [container] }).catch(() => {});
+          await canalLog.send({ embeds: [e] }).catch(() => {});
         }
       }
     } catch (err) {
       console.error('[selfban]', err.message);
+    }
+  });
+
+  // ── Aviso automático: alguém entrou na call armadilha → avisa na hora ──
+  client.on('voiceStateUpdate', async (oldState, newState) => {
+    try {
+      if (!newState.channelId || oldState.channelId === newState.channelId) return;
+      if (newState.id === client.user.id) return;
+      const gs = state.guilds?.[newState.guild.id] || guildState(newState.guild.id);
+      const sb = gs.selfban;
+      if (!sb?.ativo || !sb.canalMonitor) return;
+      if (newState.channelId !== sb.canalMonitor) return;
+
+      const agora = Date.now();
+      if (agora - (avisoEnviadoEm.get(newState.guild.id) || 0) < 30_000) return;
+      avisoEnviadoEm.set(newState.guild.id, agora);
+
+      await enviarAvisoCanalArmadilha(newState.channel);
+    } catch (err) {
+      console.error('[selfban-voice]', err.message);
     }
   });
 }
