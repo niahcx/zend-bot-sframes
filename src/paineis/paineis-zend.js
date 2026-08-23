@@ -2812,6 +2812,26 @@ function salePayload(product, gs) {
   const buyRow = new ActionRowBuilder().addComponents(
     button(id('buy', product.id), product.saleLabel || 'Comprar', saleButtonStyle(product.saleStyle), product.saleEmoji || EMOJI.carrinhoZend || '🛒'),
   );
+
+  // Menu de variações: cada campo com nome, valor e estoque
+  let menuRow = null;
+  if (product.fields.length > 1) {
+    const select = new StringSelectMenuBuilder()
+      .setCustomId(id('buy-select', product.id))
+      .setPlaceholder('🛒 Selecione uma opção para comprar')
+      .addOptions(
+        product.fields.slice(0, 25).map((field) => ({
+          label: field.name.slice(0, 100),
+          description: `Valor: ${money(field.price || 0)} · Estoque: ${
+            Number.isFinite(stockCount(field)) ? stockCount(field) : '∞'
+          }`.slice(0, 100),
+          value: field.id,
+          emoji: field.emoji ? undefined : '🛒',
+        })),
+      );
+    menuRow = new ActionRowBuilder().addComponents(select);
+  }
+
   if (gs?.customization?.productMessages?.v2) {
     const stock = firstField ? stockCount(firstField) : 0;
     const components = [];
@@ -2846,8 +2866,9 @@ function salePayload(product, gs) {
               .join('\n'),
           ),
         ),
-      buyRow,
-    );
+      );
+      if (menuRow) components.push(menuRow);
+      components.push(buyRow);
     // Payload limpo V2 — sem content/embeds
     return {
       flags: MessageFlags.IsComponentsV2,
@@ -2874,9 +2895,10 @@ function salePayload(product, gs) {
     )
     .setTimestamp();
   if (product.banner) e.setImage(product.banner);
+  const classicRows = menuRow ? [menuRow, buyRow] : [buyRow];
   return {
     embeds: [e],
-    components: [buyRow],
+    components: classicRows,
   };
 }
 

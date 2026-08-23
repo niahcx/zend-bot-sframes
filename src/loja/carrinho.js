@@ -468,16 +468,25 @@ async function cancelCart(guild, gs, cart, status = 'CANCELLED', reason = 'Cance
   return true;
 }
 
-async function startCart(interaction, gs, product) {
+async function startCart(interaction, gs, product, fieldIdEscolhido) {
   if (!gs.channels.orderLogs) {
     return interaction.reply({ content: `${EMOJI.no} Ops... o canal de logs pedidos ainda não foi configurado, faça um retorno em breve!`, ephemeral: true });
   }
   if (!hasConfiguredPayment(gs)) {
     return interaction.reply({ content: `${EMOJI.no} Ops... a forma de pagamento não foi configurada ainda, faça um retorno em breve!`, ephemeral: true });
   }
-  const firstAvailable = product?.fields?.find((item) => availableStock(item) > 0);
+  // Se o cliente escolheu uma variação no menu, usa ela; senão a primeira com estoque
+  const escolhido = fieldIdEscolhido
+    ? product?.fields?.find((item) => item.id === fieldIdEscolhido)
+    : null;
+  const firstAvailable = escolhido && availableStock(escolhido) > 0
+    ? escolhido
+    : product?.fields?.find((item) => availableStock(item) > 0);
   if (!product || !firstAvailable) {
-    return interaction.reply({ content: `${EMOJI.no} Ops... este produto está sem estoque no momento.`, ephemeral: true });
+    const msg = escolhido && availableStock(escolhido) <= 0
+      ? `${EMOJI.no} Ops... essa variação está sem estoque no momento.`
+      : `${EMOJI.no} Ops... este produto está sem estoque no momento.`;
+    return interaction.reply({ content: msg, ephemeral: true });
   }
   if (firstAvailable.requiredRole && !interaction.member?.roles?.cache?.has(firstAvailable.requiredRole)) {
     return interaction.reply({ content: `${EMOJI.no} Você precisa do cargo <@&${firstAvailable.requiredRole}> para comprar esta variação.`, ephemeral: true });

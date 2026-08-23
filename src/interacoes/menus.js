@@ -82,6 +82,14 @@ async function handleSelect(interaction, gs) {
   if (await tratarMenuAutomacoes(interaction, gs, action, a)) return;
   if (await tratarMenuOutrasAutomacoes(interaction, gs, action, a)) return;
 
+  // Menu de variações do produto → abre carrinho da variação escolhida
+  if (action === 'buy-select') {
+    const produto = getProduct(gs, a);
+    if (!produto) return interaction.reply({ content: '❌ Produto não encontrado.', ephemeral: true });
+    const { startCart } = await import('../loja/carrinho.js');
+    return startCart(interaction, gs, produto, value);
+  }
+
   // Abertura de ticket pela mensagem pública (2+ categorias = select)
   if (action === 'ticket-open-select') {
     if (!openTicket) {
