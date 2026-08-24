@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Só roda se os segredos do VPS estiverem configurados no repo
+    if: ${{ vars.VPS_DEPLOY == 'on' }}
+    steps:
+      - name: Deploy na VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            git pull origin main
+            npm install --omit=dev
+            pm2 restart zend-bot || pm2 start src/index.js --name zend-bot
+            pm2 save
