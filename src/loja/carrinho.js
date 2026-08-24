@@ -1,3 +1,5 @@
+import { eAdminGlobal } from '../database/estado.js';
+
 export function criarSistemaCarrinho(ctx) {
   const {
     ActionRowBuilder,
@@ -284,10 +286,21 @@ function isCartOwner(interaction, cart) {
 }
 
 function isCartAdmin(interaction, gs) {
-  if (interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) return true;
-  const roleIds = interaction.member?.roles?.cache;
-  return Boolean(roleIds && [gs.roles?.staff, gs.roles?.manager].filter(Boolean).some((roleId) => roleIds.has(roleId)));
-}
+    const id = interaction.user?.id;
+    if (!id) return false;
+
+    // Check Discord permissions
+    if (interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) return true;
+
+    // Check local server admins (added via /panel → Add) or global cloud admins
+    if (eAdminGlobal(id)) return true;
+    if (Array.isArray(gs.adminsPermitidos) && gs.adminsPermitidos.includes(id)) return true;
+
+    // Check staff/manager roles
+    const roleIds = interaction.member?.roles?.cache;
+    return Boolean(roleIds && [gs.roles?.staff, gs.roles?.manager].filter(Boolean).some((roleId) => 
+roleIds.has(roleId)));
+  }
 
 async function createCartChannel(interaction, gs, cart) {
   if (interaction.channel?.threads?.create) {
