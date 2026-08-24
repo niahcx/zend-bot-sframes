@@ -49,6 +49,7 @@ export function criarHandlerModais(ctx) {
     linkButton,
     logsMembrosPanel,
     mainPanel,
+    enviarMsgPanel,
     manualPaymentPanel,
     modal,
     money,
@@ -307,6 +308,28 @@ export function criarHandlerModais(ctx) {
       gs.memberLogs = gs.memberLogs || {};
       gs.memberLogs.mensagemSaida = get('message');
       return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
+    case 'modal-msg-texto':
+      gs.customMsg = gs.customMsg || {};
+      gs.customMsg.texto = get('texto');
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    case 'modal-msg-titulo':
+      gs.customMsg = gs.customMsg || {};
+      gs.customMsg.titulo = get('titulo').trim();
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    case 'modal-msg-cor': {
+      gs.customMsg = gs.customMsg || {};
+      const cor = get('cor').trim();
+      gs.customMsg.cor = /^#[0-9a-f]{6}$/i.test(cor) ? cor : '';
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    }
+    case 'modal-msg-banner':
+      gs.customMsg = gs.customMsg || {};
+      gs.customMsg.banner = get('url').trim();
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    case 'modal-msg-thumbnail':
+      gs.customMsg = gs.customMsg || {};
+      gs.customMsg.thumbnail = get('url').trim();
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
     case 'modal-repost-time':
       gs.automations.repost.time = get('time');
       return sendOrUpdate(interaction, repostPanel(guild, gs));

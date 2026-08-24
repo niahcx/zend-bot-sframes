@@ -152,6 +152,14 @@ export function defaultGuildState() {
       cor: '#5865F2',
       modoEmbed: true,
     },
+    customMsg: {
+      canal: '',
+      texto: '',
+      titulo: '',
+      banner: '',
+      thumbnail: '',
+      cor: '',
+    },
     auth: authPadrao(),
     channels: {
       orderLogs: null,

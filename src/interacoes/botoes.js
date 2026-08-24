@@ -74,6 +74,8 @@ export function criarHandlerBotoes(ctx) {
     linkButton,
     logsMembrosPanel,
     mainPanel,
+    mensagemPersonalizadaPayload,
+    enviarMsgPanel,
     manualPaymentPanel,
     modal,
     money,
@@ -292,6 +294,61 @@ export function criarHandlerBotoes(ctx) {
     case 'selfban-panel':
       { const { selfbanPanel } = await import('../paineis/painel-selfban.js');
         return sendOrUpdate(interaction, selfbanPanel(guild, gs)); }
+    case 'msg':
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    case 'msg-texto':
+      gs.customMsg = gs.customMsg || {};
+      return interaction.showModal(modal(id('modal-msg-texto'), 'Texto da Mensagem', [
+        textInput('texto', 'TEXTO DA MENSAGEM*', 'Escreva o conteúdo da mensagem', TextInputStyle.Paragraph, true, gs.customMsg.texto),
+      ]));
+    case 'msg-titulo':
+      gs.customMsg = gs.customMsg || {};
+      return interaction.showModal(modal(id('modal-msg-titulo'), 'Título da Mensagem', [
+        textInput('titulo', 'TÍTULO', 'Título da embed (deixe vazio para não usar)', TextInputStyle.Short, false, gs.customMsg.titulo),
+      ]));
+    case 'msg-cor':
+      gs.customMsg = gs.customMsg || {};
+      return interaction.showModal(modal(id('modal-msg-cor'), 'Cor da Mensagem', [
+        textInput('cor', 'COR HEX', 'Ex: #FF0000 (deixe vazio para padrão)', TextInputStyle.Short, false, gs.customMsg.cor),
+      ]));
+    case 'msg-banner':
+      gs.customMsg = gs.customMsg || {};
+      return interaction.showModal(modal(id('modal-msg-banner'), 'Banner (imagem grande)', [
+        textInput('url', 'URL DA IMAGEM', 'Cole o link da imagem (ex: https://i.imgur.com/...)', TextInputStyle.Short, false, gs.customMsg.banner),
+      ]));
+    case 'msg-thumbnail':
+      gs.customMsg = gs.customMsg || {};
+      return interaction.showModal(modal(id('modal-msg-thumbnail'), 'Thumbnail (imagem pequena no canto)', [
+        textInput('url', 'URL DA IMAGEM', 'Cole o link da imagem (ex: https://i.imgur.com/...)', TextInputStyle.Short, false, gs.customMsg.thumbnail),
+      ]));
+    case 'msg-limpar':
+      gs.customMsg = { canal: gs.customMsg?.canal || '', texto: '', titulo: '', banner: '', thumbnail: '', cor: '' };
+      return sendOrUpdate(interaction, enviarMsgPanel(guild, gs));
+    case 'msg-preview': {
+      gs.customMsg = gs.customMsg || {};
+      if (!gs.customMsg.texto && !gs.customMsg.titulo) {
+        return interaction.reply({ content: '❌ Escreva ao menos um **texto** ou **título** antes do preview.', ephemeral: true });
+      }
+      return interaction.reply({ ...mensagemPersonalizadaPayload(guild, gs), ephemeral: true });
+    }
+    case 'msg-enviar': {
+      gs.customMsg = gs.customMsg || {};
+      if (!gs.customMsg.canal) {
+        return interaction.reply({ content: '❌ Selecione o **canal de destino** no menu antes de enviar.', ephemeral: true });
+      }
+      if (!gs.customMsg.texto && !gs.customMsg.titulo) {
+        return interaction.reply({ content: '❌ Escreva ao menos um **texto** ou **título** antes de enviar.', ephemeral: true });
+      }
+      const canalAlvo = await interaction.guild.channels.fetch(gs.customMsg.canal).catch(() => null);
+      if (!canalAlvo?.isTextBased()) {
+        return interaction.reply({ content: '❌ Não encontrei o canal de destino. Selecione outro.', ephemeral: true });
+      }
+      const enviada = await canalAlvo.send(mensagemPersonalizadaPayload(guild, gs)).catch(() => null);
+      if (!enviada) {
+        return interaction.reply({ content: '❌ Não consegui enviar nesse canal — verifique minhas permissões lá.', ephemeral: true });
+      }
+      return interaction.reply({ content: `${EMOJI.yesgenesis} | Mensagem enviada em <#${canalAlvo.id}>! [Ver mensagem](${enviada.url})`, ephemeral: true });
+    }
     case 'logs-membros':
       return sendOrUpdate(interaction, logsMembrosPanel(guild, gs));
     case 'logs-membros-toggle':

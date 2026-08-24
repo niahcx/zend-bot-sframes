@@ -196,6 +196,7 @@ function mainPanel(guild, gs) {
       new ActionRowBuilder().addComponents(
         button(id('selfban-panel'), 'Anti-SelfBot', ButtonStyle.Danger, '🛡️'),
         button(id('logs-membros'), 'Logs Entrada/Saída', ButtonStyle.Primary, '📋'),
+        button(id('msg'), 'Msg', ButtonStyle.Success, '💬'),
       ),
     ],
   };
@@ -2854,6 +2855,70 @@ function logsMembrosPanel(guild, gs) {
   };
 }
 
+// Monta a mensagem personalizada (embed se tiver título/banner/thumbnail, senão texto solto)
+function mensagemPersonalizadaPayload(guild, gs) {
+  const cm = gs.customMsg || {};
+  const temEmbed = cm.titulo || cm.banner || cm.thumbnail || cm.cor;
+  if (temEmbed) {
+    const e = new EmbedBuilder()
+      .setColor(parseHex(cm.cor || '#5865F2'))
+      .setFooter(nowFooter(guild, 'Mensagem'))
+      .setTimestamp();
+    if (cm.titulo) e.setTitle(renderCustomEmojis(cm.titulo));
+    if (cm.texto) e.setDescription(renderCustomEmojis(cm.texto));
+    if (cm.banner) e.setImage(cm.banner);
+    if (cm.thumbnail) e.setThumbnail(cm.thumbnail);
+    return { embeds: [e] };
+  }
+  return { content: renderCustomEmojis(cm.texto || '') };
+}
+
+function enviarMsgPanel(guild, gs) {
+  const cm = gs.customMsg || {};
+  const e = embed(
+    'SFrames\n💬 Enviar Mensagem',
+    [
+      '> Monte uma mensagem personalizada e envie em qualquer canal.',
+      '> Pode usar texto, título, banner, thumbnail e cor (embed bonita).',
+      '',
+      `**🎯 Canal de destino:** ${cm.canal ? `<#${cm.canal}>` : '`Não selecionado`'}`,
+      `**🏷️ Título:** ${cm.titulo ? `\`${cm.titulo.slice(0, 60)}\`` : '`Sem título`'}`,
+      `**📝 Texto:** ${cm.texto ? `\`${cm.texto.slice(0, 60)}${cm.texto.length > 60 ? '...' : ''}\`` : '`Vazio`'}`,
+      `**🖼️ Banner:** ${cm.banner ? '`Definido ✓`' : '`Sem banner`'}`,
+      `**▪️ Thumbnail:** ${cm.thumbnail ? '`Definida ✓`' : '`Sem thumbnail`'}`,
+      `**🎨 Cor:** ${cm.cor ? `\`${cm.cor}\`` : '`Padrão`'}`,
+      '',
+      '**Como usar:**',
+      '**1.** Edite texto/título/banner etc. nos botões',
+      '**2.** Selecione o canal de destino no menu abaixo',
+      '**3.** Clique em **📤 Enviar** (ou 👁️ Preview antes)',
+    ].join('\n'),
+    guild,
+    'Enviar Mensagem',
+  );
+  return {
+    embeds: [e],
+    components: [
+      new ActionRowBuilder().addComponents(
+        button(id('msg-texto'), '📝 Texto', ButtonStyle.Primary),
+        button(id('msg-titulo'), '🏷️ Título', ButtonStyle.Primary),
+        button(id('msg-cor'), '🎨 Cor', ButtonStyle.Secondary),
+      ),
+      new ActionRowBuilder().addComponents(
+        button(id('msg-banner'), '🖼️ Banner', ButtonStyle.Primary),
+        button(id('msg-thumbnail'), '▪️ Thumbnail', ButtonStyle.Primary),
+        button(id('msg-limpar'), '🗑️ Limpar tudo', ButtonStyle.Danger),
+      ),
+      new ActionRowBuilder().addComponents(
+        button(id('msg-preview'), '👁️ Preview', ButtonStyle.Success),
+        button(id('msg-enviar'), '📤 Enviar', ButtonStyle.Success, '🚀', !cm.canal),
+      ),
+      channelSelectRow(id('msg-canal')),
+      new ActionRowBuilder().addComponents(button(id('home'), 'Voltar ao início', ButtonStyle.Secondary, EMOJI.left)),
+    ],
+  };
+}
+
 function channelSelectRow(customId) {
   return new ActionRowBuilder().addComponents(
     new ChannelSelectMenuBuilder()
@@ -2973,6 +3038,8 @@ function parsePrice(value) {
   return {
     mainPanel,
     logsMembrosPanel,
+    mensagemPersonalizadaPayload,
+    enviarMsgPanel,
     productListPanel,
     storePanel,
     authPanel,
