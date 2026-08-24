@@ -11,4 +11,4 @@ node_modules/*
 
 # Arquivos de boot
 *.lock
-.env
+.env.github/
